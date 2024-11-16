@@ -1,0 +1,5 @@
+pyautogen
+matplotlib
+numpy
+pandas
+ipykernel
