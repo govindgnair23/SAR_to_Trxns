@@ -16,7 +16,7 @@ agents:
       Step 1) Extract the main entities described. Entities could be Individuals or Organizations or Financial Institutions. Return this in the form of a dictionary called Entities
               Entities = { "Individuals" : <List of Individuals> , "Organizations": <List of Organizations>, "Financial_Institutions": <List of Financial Instituions >} 
 
-      Step 2) Extract the Account IDs described. Account IDs could be numeric or alphanumeric.If an Account ID is missing, create a Dummy account ID with the prefix "Dummy_".
+      Step 2) Extract the Account IDs described. Account IDs could be numeric or alphanumeric.If an Account ID is missing, create a Dummy account ID with the prefix "Dummy_Acct_".
               e.g. Dummy_Acct_1, Dummy_Acct_2 and so on. Put this in a list called Account_IDs
 
       Step 3) Map the extracted Account IDs to Financial institutions where the account is held. If the name of the institution is not specified, create a Dummy institution name e.g Dummy_Bank_1, Dummy_Bank_2 etc.
@@ -53,8 +53,8 @@ agents:
 
       Multiple Accounts could be held at the same Financial Institution.
 
-      Record this in a dictionary named FI_to_Acct.
-      FI_to_Acct = {"Bank of America":["345723"], "Chase Bank" : ["Dummy_Acct_1"], "Dummy_Bank_1": ["98765"]  }
+      Record this in a dictionary named Acct_to_FI.
+      Acct_to_FI = {"345723":"Bank of America","Dummy_Acct_1":"Chase Bank", "98765":"Dummy_Bank_1" }
 
       
       Step 4) Map the extracted Account IDs extracted in Step 2 to Individuals or Organizations that are customers of the Financial Institutions. 
@@ -67,7 +67,31 @@ agents:
 
       Acct_to_Cust = {"345723": "John,"Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
     llm_config:
-      model: "gpt-40-mini"
+      model: "gpt-4o-mini"
     human_input_mode: "NEVER"
+    max_turns: 1
+    summary_method: "reflection_with_llm"
+    summary_prompt: |
+        Return the extracted entity information as a JSON object only:
+        {
+          "Entities": {
+            "Individuals": ["Individual_1", "Individual_2"],
+            "Organizations": ["Organization_1"],
+            "Financial_Institutions": ["Financial_Institution_1", "Financial_Institution_2"]
+                      },
+          "Account_IDs": ["Acct_ID_1", "Acct_ID_2", "Acct_ID_3"],
+          "Acct_to_FI": {
+            "Acct_ID_1" : "Financial_Institution_1",
+            "Acct_ID_2" : "Financial_Institution_2",
+            "Acct_ID_3" : "Financial_Institution_2"
+          },
+          "Acct_to_Cust": {
+            "Acct_ID_1": "Individual_1",
+            "Acct_ID_2": "Individual_2",
+            "Acct_ID_3": "Organization_1"
+          }
+        }
+
+
 
   
