@@ -1,6 +1,7 @@
 from autogen import ConversableAgent , initiate_chats
 import logging
 import json
+import ast
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -84,10 +85,8 @@ def create_two_agent_chat(sender_agent , receiver_agent, message,summary_prompt)
     
 
     results = chat_results[0].summary
-
-    try:
-        results_dict = json.loads(results)
-    except json.JSONDecodeError as e:
-         print("Failed to decode JSON:", e)
+    cleaned_results = results.strip("```python\n").strip("```")
+    # Convert to dictionary
+    results_dict = ast.literal_eval(cleaned_results)
 
     return results_dict

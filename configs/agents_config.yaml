@@ -72,23 +72,23 @@ agents:
     max_turns: 1
     summary_method: "reflection_with_llm"
     summary_prompt: |
-        Return the extracted entity information as a JSON object only:
+        Return the extracted entity information including Dummy Account IDs and Dummy Entities as a Python dictionary only:
         {
           "Entities": {
-            "Individuals": ["Individual_1", "Individual_2"],
-            "Organizations": ["Organization_1"],
-            "Financial_Institutions": ["Financial_Institution_1", "Financial_Institution_2"]
+            "Individuals": <List of Individuals>,
+            "Organizations": <List of Organizations>,
+            "Financial_Institutions": <List of Financial Institutions>
                       },
-          "Account_IDs": ["Acct_ID_1", "Acct_ID_2", "Acct_ID_3"],
+          "Account_IDs": <List of Account IDs>,
           "Acct_to_FI": {
-            "Acct_ID_1" : "Financial_Institution_1",
-            "Acct_ID_2" : "Financial_Institution_2",
-            "Acct_ID_3" : "Financial_Institution_2"
+            "<Acct_ID_1> : "<Financial_Institution_1>",
+            "<Acct_ID_2>" : "<Financial_Institution_2>",
+            "<Acct_ID_3>" : "<Financial_Institution_3>"
           },
           "Acct_to_Cust": {
-            "Acct_ID_1": "Individual_1",
-            "Acct_ID_2": "Individual_2",
-            "Acct_ID_3": "Organization_1"
+            "<Acct_ID_1>": "<Individual_1>",
+            "<Acct_ID_2>": "<Individual_2>",
+            "<Acct_ID_3>": "<Organization_1>"
           }
         }
 

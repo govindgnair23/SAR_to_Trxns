@@ -7,6 +7,7 @@ import os
 import json
 from autogen import Cache
 from typing import  Dict, Any
+import ast
 
 def run_agentic_workflow(sar_text: str,config_file:str) -> Dict[str, Any]:
     '''
@@ -25,26 +26,38 @@ def run_agentic_workflow(sar_text: str,config_file:str) -> Dict[str, Any]:
     ee_summary_prompt = ee_agent_config.get("summary_prompt")
 
     # Use DiskCache as cache
-    with Cache.disk() as cache:
+   # with Cache.disk() as cache:
 
-        chat_results = agents["SAR_Agent"].initiate_chats(
-        [
-            {
-                "recipient":  agents["Entity_Extraction_Agent"],
-                "message": sar_text,
-                "max_turns": 1,
-                "summary_method": "reflection_with_llm",
-                "summary_args": {
-                "summary_prompt" :  ee_summary_prompt                                                               
-                    },
-            } ] )
+    chat_results = agents["SAR_Agent"].initiate_chats(
+    [
+        {
+            "recipient":  agents["Entity_Extraction_Agent"],
+            "message": sar_text,
+            "max_turns": 1,
+            "summary_method": "reflection_with_llm",
+            "summary_args": {
+            "summary_prompt" :  ee_summary_prompt                                                               
+                },
+        } ] )
 
     results = chat_results[0].summary
 
-    try:
-        results_dict = json.loads(results)
-    except json.JSONDecodeError as e:
-         print("Failed to decode JSON:", e)
+    
+    cleaned_results = results.strip("```python\n").strip("```")
+    # Convert to dictionary
+    results_dict = ast.literal_eval(cleaned_results)
+
+    
+    # # Clean the JSON string if necessary
+    # cleaned_results = results.replace('\n', '').strip()
+
+    # # Parse the cleaned JSON string
+    # try:
+    #     results_dict = json.loads(cleaned_results)
+    # except json.JSONDecodeError as e:
+    #     print("Failed to decode JSON:", e)
+    #     print("Response content:", repr(cleaned_results))
+
 
     return results_dict
 
@@ -68,10 +81,10 @@ def main():
 
 
     results_dict = run_agentic_workflow(message,config_file)
-
+    print(results_dict)
   
-    output_file_path = "./data/output/results0.json"
-    write_dict_to_json_file(results_dict, output_file_path)
+    # output_file_path = "./data/output/results0.json"
+    # write_dict_to_json_file(results_dict, output_file_path)
 
 
 
