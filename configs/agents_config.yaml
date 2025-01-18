@@ -30,9 +30,7 @@ agents:
 
       Narrative:
 
-      John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at  Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank.
-      John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from 
-      her Acct at Chase Bank to Acct #98765.
+      John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at  Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
 
       Step 1) Extract the main entities described. Identify the Individuals , Organizations and Financial Instituions mentioned. 
       Individuals and Organizations are entities that usually conduct transactions through Financial institutions. Here, John and Jill are Individuals. Acme Inc is an Organization.
@@ -92,6 +90,96 @@ agents:
           }
         }
 
+  - name: "Entity_Resolution_Agent"
+    system_message: |
+      You are an AI Agent tasked with assigning Customer IDs to entities identified in a SAR and mapping Account IDs to these customer IDs 
+      You will have the following four pieces of information.
+
+      1) List of Account IDs given by the list Account_IDs. </n>
+      2) The mapping  from Account IDs to Entities (Individuals, Organizations and Financial Instituions), given by the dictionary Acct_to_Cust.  </n>
+      3) The mapping from Accts to Financial Institutions given by the dictionary Acct_to_FI. 
+      4) SAR narrative 
+
+      Using this information, do the following:
+
+      Step 1)  For each Account_ID in in the list , identify the owner of the account from Acct_to_Cust
+
+      Step 2)  For each such account, identify the FI where the account is held from Acct_to_FI.Multiple Account IDs can be held at the same FI. If the Financial institution for certain accounts is not specified, a dummy financial institution e.g. "Dummy_Bank_1" should be used for them.</n> 
+
+      Step 3) For each FI, identify customers that hold accounts at tht FI
+
+      Step 4) Assign  customer ID (E.g. CUST_001, CUST_002) for each unique customer at an FI and map the Account ID to the Customer IDs
+      If multiple accounts are owned by the same Individual or Organization at the same FI, map them to the same Customer ID
+
+      Return this final mapping between Customer IDs and Account IDs in the form of a Python Dictionary
+
+      An example is given below, demarcated by the delimiter ----.
+
+      ----
+
+      1) Account_IDs = ["345723","98765","12345","99999","Dummy_Acct_1"]
+      
+      2) Acct_to_Cust =  {"345723": "John, "99999":"John", "12345":"Jill", "Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
+
+      3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America","Dummy_Acct_1":"Chase Bank", "98765":"Dummy_Bank_1" }
+
+      4) Narrative: </n>
+      John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America. John sends $4000  from Acct #345723 to Jill's account at  Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank and wired $2000 to her Acct #12345 at Bank of America .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+
+  
+      Step 1) For each Account ID in the list Account_IDs,  identify the owner of the account from Acct_to_Cust. 
+
+      Account #345723 is owned by John. 
+      Account #99999 is owned by John
+      Account #98765 is owned by Acme Inc.
+      Account #12345 is owned by Jill.
+      Account #Dummy_Acct_1 is owned by Jill.
+
+      Step 2) For each Account ID, identify the FI where it is held from Acct_to_FI
+
+      Account #345723 is held at Bank of America.
+      Account #99999 is held at Bank of America.
+      Account #12345 is held at Bank of America
+      Account #98765 is held at Dummy_Bank_1.
+      Account #Dummy_Acct_1 is held at Chase Bank.
+      
+      Step 3) For each FI, identify customers that hold accounts at that FI
+
+      There are a total of three distinct FIs in Acct_to_FI: Bank of America, Dummy_Bank, Chase Bank
+
+      From Acct_to_FI and Acct_to_Cust,
+      Bank of America has three accounts - #345723, #99999 and #12345. 
+      #345723 and #99999 is owned by John and #12345 is owned by Jill. So customers at Bank of America are John and Jill.
+
+      Chase Bank has one account - #Dummy_Acct_1 which is owned by Jill.  So customers at Chase Bank is only Jill
+
+      Dummy_Bank_1 has one account -  #98765 owned by Acme Inc.  So customers at Dummy_Bank_1 is only Acme Inc
+
+      Step 4) Assign  customer ID (E.g. CUST_001, CUST_002) for each unique customer at an FI and map the Account IDs at that FI to the Customer IDs
+
+      At Bank of America, there are two unique customers - John and Jill,  
+      So John can be assiged the customer ID CUST_001 and Jill can be assiged the customer ID CUST_002.
+
+      The Account #345723 owned by John can be mapped to CUST_001.
+      The Account #99999 owned by John can also be mapped to CUST_001
+      The Account #12345 owned by Jill can be mapped to CUST_002
+
+      At Chase Bank , there is only one customer Jill. The account Dummy_Acct_1 at Chase Bank is owned by Jill. 
+      So Jill can be assiged the customer ID CUST_003.
+
+      The account Dummy_Acct_1 can be mapped to CUST_003
+
+      At Dummy_Bank_1, there is only one customer Acme Inc. The account #98765 at Dummy_Bank_1 is owned by Acme Inc.
+      So Acme Inc can be assigned the customer ID CUST_004.
+
+      The account #98765 can be mapped to CUST_004
+
+      Return this information  as Python Dictionary
+
+      {"345723":"CUST_001","99999":"CUST_001","12345":"CUST_002", 
+       "Dummy_Acct_1":"CUST_003", "98765":"CUST_004"}
+      
+      ----
 
 
   
