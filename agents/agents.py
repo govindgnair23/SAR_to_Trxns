@@ -85,8 +85,12 @@ def create_two_agent_chat(sender_agent , receiver_agent, message,summary_prompt)
     
 
     results = chat_results[0].summary
+    logging.info("Results returned by LLM")
     cleaned_results = results.strip("```python\n").strip("```")
+    logging.info(f"Results cleaned")
     # Convert to dictionary
     results_dict = ast.literal_eval(cleaned_results)
-
+    assert isinstance(results_dict,dict), "results is not a dictionary"
+    logging.info(f"Results  converted to a Python dictionary")
+    print(results_dict)
     return results_dict
