@@ -1,108 +1,108 @@
 import unittest
-from utils import  load_agents_from_single_config, get_agent_config
+from utils import  load_agents_from_single_config, get_agent_config, approximate_match_ratio
 from agents.agents import instantiate_base_agent , create_two_agent_chat
 import logging
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# class Test_Entity_Extraction_Agent(unittest.TestCase):
-#     '''
-#     Tests for the Entity Extraction Agent
-#     '''
+class Test_Entity_Extraction_Agent(unittest.TestCase):
+    '''
+    Tests for the Entity Extraction Agent
+    '''
 
-#     def setUp(self):
-#         self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
-#         logging.info("Step 1: All agent configurations read")
-#         self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
-#         logging.info("Step 2: Extracted config for SAR Agent")
-#         self.sar_agent = instantiate_base_agent('SAR_Agent',self.sar_agent_config )
-#         logging.info("Step 3: Instantiated SAR Agent")
-#         self.agent_config = get_agent_config(self.agent_configs, "Entity_Extraction_Agent")
-#         logging.info("Step 4: Extracted config for Entity Extraction  Agent correctly")
-#         self.entity_extraction_agent = instantiate_base_agent('Entity_Extraction_Agent',self.agent_config )
-#         logging.info("Step 5: Instantiated Entity Extraction Agent")
-#         self.message1 = """ 
-#                        John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.
-#                        Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a Business account, Account #98765. 
-#                        John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
-#                        """
+    def setUp(self):
+        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+        logging.info("Step 1: All agent configurations read")
+        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
+        logging.info("Step 2: Extracted config for SAR Agent")
+        self.sar_agent = instantiate_base_agent('SAR_Agent',self.sar_agent_config )
+        logging.info("Step 3: Instantiated SAR Agent")
+        self.agent_config = get_agent_config(self.agent_configs, "Entity_Extraction_Agent")
+        logging.info("Step 4: Extracted config for Entity Extraction  Agent correctly")
+        self.entity_extraction_agent = instantiate_base_agent('Entity_Extraction_Agent',self.agent_config )
+        logging.info("Step 5: Instantiated Entity Extraction Agent")
+        self.message1 = """ 
+                       John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.
+                       Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a Business account, Account #98765. 
+                       John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+                       """
         
-#         self.message2 = ""
-#         self.summary_prompt = self.agent_config.get("summary_prompt") 
-#         logging.info("Step 5: Read summary prompt for Entity Extraction Agent")         
+        self.message2 = ""
+        self.summary_prompt = self.agent_config.get("summary_prompt") 
+        logging.info("Step 5: Read summary prompt for Entity Extraction Agent")         
 
-#         self.results_dict1 = create_two_agent_chat(self.sar_agent,self.entity_extraction_agent,self.message1,self.summary_prompt)
-#         #self.results_dict2 = create_two_agent_chat(self.sar_agent,self.entity_extraction_agent,self.message2,self.summary_prompt)
+        self.results_dict1 = create_two_agent_chat(self.sar_agent,self.entity_extraction_agent,self.message1,self.summary_prompt)
+        #self.results_dict2 = create_two_agent_chat(self.sar_agent,self.entity_extraction_agent,self.message2,self.summary_prompt)
 
-#     def test_output_elements(self):
-#         '''
-#         Test  all output elements have been extracted.
-#         '''
-#         keys = list(self.results_dict1.keys())
-#         self.assertIn("Entities", keys, "Entities not extracted")
-#         self.assertIn("Account_IDs", keys, "Account IDs not extracted")
-#         self.assertIn("Acct_to_FI", keys, " Mapping from Financial institutions to Accounts IDs not extracted")
-#         self.assertIn("Acct_to_Cust", keys, " Mapping from  Accounts IDs to Customers not extracted")
+    def test_output_elements(self):
+        '''
+        Test  all output elements have been extracted.
+        '''
+        keys = list(self.results_dict1.keys())
+        self.assertIn("Entities", keys, "Entities not extracted")
+        self.assertIn("Account_IDs", keys, "Account IDs not extracted")
+        self.assertIn("Acct_to_FI", keys, " Mapping from Financial institutions to Accounts IDs not extracted")
+        self.assertIn("Acct_to_Cust", keys, " Mapping from  Accounts IDs to Customers not extracted")
         
 
 
 
-#     def test_entities(self): 
-#         '''
-#         Test All Entities are correctly extracted.
-#         '''
-#         expected_entities = {
-#         "Individuals": ["John", "Jill"],
-#         "Organizations": ["Acme Inc"],
-#         "Financial_Institutions": ["Bank of America", "Chase Bank"]
-#         }
+    def test_entities(self): 
+        '''
+        Test All Entities are correctly extracted.
+        '''
+        expected_entities = {
+        "Individuals": ["John", "Jill"],
+        "Organizations": ["Acme Inc"],
+        "Financial_Institutions": ["Bank of America", "Chase Bank"]
+        }
 
-#         self.assertEqual(expected_entities["Individuals"],self.results_dict1["Entities"]["Individuals"], "Individuals have  NOT been correctly extracted as a list")
-#         self.assertEqual(expected_entities["Organizations"],self.results_dict1["Entities"]["Organizations"], "Organizations have NOT been correctly extracted as a list")
-#         self.assertEqual(expected_entities["Financial_Institutions"],self.results_dict1["Entities"]["Financial_Institutions"], "Financial_Institutions have NOT been correctly extracted as a list")
+        self.assertEqual(expected_entities["Individuals"],self.results_dict1["Entities"]["Individuals"], "Individuals have  NOT been correctly extracted as a list")
+        self.assertEqual(expected_entities["Organizations"],self.results_dict1["Entities"]["Organizations"], "Organizations have NOT been correctly extracted as a list")
+        self.assertEqual(expected_entities["Financial_Institutions"],self.results_dict1["Entities"]["Financial_Institutions"], "Financial_Institutions have NOT been correctly extracted as a list")
 
-#     def test_account_ids(self):
-#         '''
-#         Test All Account IDs are correctly extracted.
-#         '''
-#         expected_account_ids = {"345723", "98765"}
-#         expected_account_ids_dummy = {"Dummy_Acct_1"}
-#         self.assertTrue(expected_account_ids.issubset(self.results_dict1["Account_IDs"]), " Non Dummy Account IDs have NOT been correctly extracted ")
-#         self.assertTrue(expected_account_ids_dummy.issubset(self.results_dict1["Account_IDs"]), " Dummy Account IDs have NOT been correctly extracted ")
+    def test_account_ids(self):
+        '''
+        Test All Account IDs are correctly extracted.
+        '''
+        expected_account_ids = {"345723", "98765"}
+        expected_account_ids_dummy = {"Dummy_Acct_1"}
+        self.assertTrue(expected_account_ids.issubset(self.results_dict1["Account_IDs"]), " Non Dummy Account IDs have NOT been correctly extracted ")
+        self.assertTrue(expected_account_ids_dummy.issubset(self.results_dict1["Account_IDs"]), " Dummy Account IDs have NOT been correctly extracted ")
 
-#     def test_map_accounts_to_financial_institutions(self):
-#         '''
-#         Test that the agent correctly maps account IDs to financial institutions.
+    def test_map_accounts_to_financial_institutions(self):
+        '''
+        Test that the agent correctly maps account IDs to financial institutions.
 
-#         '''
+        '''
        
-#         expected_acct_to_fi = {
-#             "345723": "Bank of America",
-#             "Dummy_Acct_1": "Chase Bank",
-#             "98765": "Dummy_Bank_1"
-#         }
+        expected_acct_to_fi = {
+            "345723": "Bank of America",
+            "Dummy_Acct_1": "Chase Bank",
+            "98765": "Dummy_Bank_1"
+        }
 
 
-#         self.assertEqual(expected_acct_to_fi["345723"],self.results_dict1["Acct_to_FI"]["345723"], "Account ID  345723 NOT correctly mapped ")
-#         self.assertEqual(expected_acct_to_fi["Dummy_Acct_1"],self.results_dict1["Acct_to_FI"]["Dummy_Acct_1"], "Dummy_Acct_1 NOT correctly mapped")
-#         self.assertEqual(expected_acct_to_fi["98765"],self.results_dict1["Acct_to_FI"]["98765"], "Account ID  98765 NOT correctly mapped")
+        self.assertEqual(expected_acct_to_fi["345723"],self.results_dict1["Acct_to_FI"]["345723"], "Account ID  345723 NOT correctly mapped ")
+        self.assertEqual(expected_acct_to_fi["Dummy_Acct_1"],self.results_dict1["Acct_to_FI"]["Dummy_Acct_1"], "Dummy_Acct_1 NOT correctly mapped")
+        self.assertEqual(expected_acct_to_fi["98765"],self.results_dict1["Acct_to_FI"]["98765"], "Account ID  98765 NOT correctly mapped")
 
 
 
-#     def test_map_accounts_to_customers(self):
-#         """
-#         Test that the agent correctly maps account IDs to the corresponding customers.
-#         """
-#         expected_accts_to_customers = {
-#             "345723" : "John",
-#             "Dummy_Acct_1": "Jill",
-#             "98765": "Acme Inc"
-#         }
+    def test_map_accounts_to_customers(self):
+        """
+        Test that the agent correctly maps account IDs to the corresponding customers.
+        """
+        expected_accts_to_customers = {
+            "345723" : "John",
+            "Dummy_Acct_1": "Jill",
+            "98765": "Acme Inc"
+        }
 
-#         self.assertEqual(expected_accts_to_customers["345723"],self.results_dict1["Acct_to_Cust"]["345723"], "Account IDs #345723 NOT mapped correctly")
-#         self.assertEqual(expected_accts_to_customers["Dummy_Acct_1"],self.results_dict1["Acct_to_Cust"]["Dummy_Acct_1"], "Dummy_Acct_1 NOT mapped correctly")
-#         self.assertEqual(expected_accts_to_customers["98765"],self.results_dict1["Acct_to_Cust"]["98765"], "Account IDs #98765 NOT mapped correctly")
+        self.assertEqual(expected_accts_to_customers["345723"],self.results_dict1["Acct_to_Cust"]["345723"], "Account IDs #345723 NOT mapped correctly")
+        self.assertEqual(expected_accts_to_customers["Dummy_Acct_1"],self.results_dict1["Acct_to_Cust"]["Dummy_Acct_1"], "Dummy_Acct_1 NOT mapped correctly")
+        self.assertEqual(expected_accts_to_customers["98765"],self.results_dict1["Acct_to_Cust"]["98765"], "Account IDs #98765 NOT mapped correctly")
 
 class Test_Entity_Resolution_Agent(unittest.TestCase):
     '''
@@ -232,6 +232,106 @@ class Test_Entity_Resolution_Agent(unittest.TestCase):
         self.assertCountEqual(beta_accts, ["C3", "C4", "C5"], "BetaBank should have accounts C3, C4, and C5.")
         beta_ids = set(results["BetaBank"].values())
         self.assertEqual(len(beta_ids), 3, "Expected three unique customer IDs at BetaBank.")
+
+
+class Test_Narrative_Extraction_Agent(unittest.TestCase):
+    
+    def setUp(self):
+        logging.info("Loading agent configs...")
+        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+
+        logging.info("Step 1: All agent configurations read")
+        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
+        logging.info("Step 2: Extracted config for SAR Agent")
+        self.sar_agent = instantiate_base_agent('SAR_Agent',self.sar_agent_config )
+        logging.info("Step 3: Instantiated SAR Agent")
+
+        
+        self.agent_config = get_agent_config(self.agent_configs, "Narrative_Extraction_Agent")
+        logging.info("Step 4: Extracting Narrative_Extraction_Agent config...")
+
+        
+        self.narrative_extraction_agent = instantiate_base_agent('Narrative_Extraction_Agent', 
+                                                                 self.agent_config)
+        
+        logging.info("Step 5: Instantiating Narrative Extraction Agent...")
+
+        # Example message & expected result
+        self.message1 = """
+        1) Account_IDs = ["345723","98765","12345","99999","Dummy_Acct_1"]
+        2) Acct_to_Cust =  {"345723": "John","99999":"John","12345":"Jill","Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
+        3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America",
+                          "Dummy_Acct_1":"Chase Bank","98765":"Dummy_Bank_1"}
+        4) Narrative:
+           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America.
+           John sends $4000  from Acct #345723 to Jill's account at  Chase Bank.
+           Jill deposited $3000 in Cash into her Acct at Chase Bank and then wired $2000 to her Acct #12345 at Bank of America.
+           John and Jill own a business Acme Inc that has a Business account, Account #98765.
+           John sends $2000 from Acct #99999 to Account #98765.
+           Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire.
+        """
+
+        self.expected_dict1 = {
+            "345723": (
+                "John deposited $5000 each in Cash into Acct #345723 at Bank of America. "
+                "John sends $4000  from Acct #345723 to Jill's account at  Chase."
+            ),
+            "98765":  "John sends $2000 from Acct #99999 to Account #98765.",
+            "12345":  (
+                "Jill deposited $3000 in Cash into her Acct at Chase Bank and then wired "
+                "$2000 to her Acct #12345 at Bank of America"
+            ),
+            "99999":  "John sends $2000 from Acct #99999 to Account #98765",
+            "Dummy_Acct_1": (
+                "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank. "
+                "Jill deposited $3000 in Cash into her Acct at Chase Bank and  then  wired "
+                "$2000 from that account to her Acct #12345 at Bank of America. "
+                "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire."
+            )
+        }
+
+        
+        self.summary_prompt = self.agent_config.get("summary_prompt") 
+        logging.info("Step 6: Read summary prompt for narrative Extraction Agent")         
+
+        self.results_dict1 = create_two_agent_chat(self.sar_agent,self.narrative_extraction_agent,self.message1,self.summary_prompt)
+       
+
+        
+
+    def test_scenario_1_extraction_approx(self):
+        """
+        Validate scenario 1 using approximate lexical match for the narrative text.
+        The similarity ratio should exceed our threshold (e.g. 0.80).
+        """
+        # 1) Check that the same set of account IDs exist in both dicts
+        self.assertEqual(
+            set(self.results_dict1.keys()),
+            set(self.expected_dict1.keys()),
+            "Mismatch in the set of account IDs extracted."
+        )
+
+        # 2) Compare the narratives for each account using approximate matching
+        threshold = 0.80
+        for acct_id, expected_text in self.expected_dict1.items():
+            self.assertIn(
+                acct_id,
+                self.results_dict1,
+                f"Account {acct_id} is missing in the agent's output."
+            )
+
+            actual_text = self.results_dict1[acct_id].strip()
+            ratio = approximate_match_ratio(expected_text.strip(), actual_text)
+            
+            self.assertTrue(
+                ratio >= threshold,
+                (
+                    f"Narrative for account {acct_id} does not meet the similarity "
+                    f"threshold of {threshold}. Got ratio={ratio:.2f}.\n"
+                    f"Expected: {expected_text}\n"
+                    f"Actual:   {actual_text}"
+                )
+            )
 
 
 if __name__ == '__main__':
