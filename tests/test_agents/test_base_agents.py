@@ -333,6 +333,182 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
                 )
             )
 
+class Test_Transaction_Generation_Agent(unittest.TestCase):
+    """
+    Tests for the AI Agent that synthesizes transactions from a narrative.
+    This agent:
+      1) Reads the dictionary 'Narrative' with account IDs as keys and
+         textual descriptions as values.
+      2) Looks up account owners (individuals/organizations) and FIs.
+      3) Extracts each described transaction.
+      4) Returns a Python dictionary keyed by Transaction ID (e.g., 1, 2, 3).
+    """
+
+    def setUp(self):
+        """
+        1) Load agent configs
+        2) Extract config for 'Transaction_Generation_Agent'
+        3) Instantiate agent
+        4) Prepare a test message (with narrative, Acct_to_Cust, Acct_to_FI, FI_to_Acct_to_Cust)
+        5) Run the agent and store the result for verification
+        """
+        
+        logging.info("Loading agent configs...")
+        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+
+
+        logging.info("Step 1: All agent configurations read")
+        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
+        logging.info("Step 2: Extracted config for SAR Agent")
+        self.sar_agent = instantiate_base_agent('SAR_Agent',self.sar_agent_config )
+        logging.info("Step 3: Instantiated SAR Agent")
+        
+        logging.info("Extracting Transaction_Generation_Agent config...")
+        self.agent_config = get_agent_config(self.agent_configs, "Transaction_Generation_Agent")
+
+        logging.info("Instantiating Transaction Generation Agent...")
+        self.transaction_generation_agent = instantiate_base_agent(
+            'Transaction_Generation_Agent', 
+            self.agent_config
+        )
+
+        # We will re-use the example from the instructions as our test scenario
+        self.test_message = """
+        1) Narrative = {
+          "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
+                     John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
+                     John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"
+        }
+        2) Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
+        3) Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank"}
+        4) FI_to_Acct_to_Cust = {
+             "Bank of America": {"345723": "CUST_001", "98765": "CUST_002"},
+             "Chase Bank": {"Dummy_001": "CUST_003"}
+        }
+        """
+        # Expected Results
+        self.expected_trxns = {
+            "345723": {
+                1: {
+                    "Originator_Name": "John",
+                    "Originator_Account_ID": "345723",
+                    "Originator_Customer_ID": "CUST_001",
+                    "Beneficiary_Name": "John",
+                    "Beneficiary_Account_ID": "345723",
+                    "Beneficiary_Customer_ID": "CUST_001",
+                    "Trxn_Channel": "Cash",
+                    "Trxn_Date": "2024-01-04",
+                    "Trxn_Amount": 5000,
+                    "Branch_or_ATM Location": "Main Road,NY"
+                },
+                2: {
+                    "Originator_Name": "John",
+                    "Originator_Account_ID": "345723",
+                    "Originator_Customer_ID": "CUST_001",
+                    "Beneficiary_Name": "Acme,Inc",
+                    "Beneficiary_Account_ID": "98765",
+                    "Beneficiary_Customer_ID": "CUST_002",
+                    "Trxn_Channel": "Wire",
+                    "Trxn_Date": "2024-01-06",
+                    "Trxn_Amount": 3000,
+                    "Branch_or_ATM Location": ""
+                },
+                3: {
+                    "Originator_Name": "John",
+                    "Originator_Account_ID": "345723",
+                    "Originator_Customer_ID": "CUST_001",
+                    "Beneficiary_Name": "Jill",
+                    "Beneficiary_Account_ID": "Dummy_001",
+                    "Beneficiary_Customer_ID": "CUST_003",
+                    "Trxn_Channel": "Check",
+                    "Trxn_Date": "2024-01-08",
+                    "Trxn_Amount": 1000,
+                    "Branch_or_ATM Location": ""
+                }
+            }
+        }
+
+        # A set of all required keys we expect in each transaction:
+        self.required_keys = {
+            "Originator_Name",
+            "Originator_Account_ID",
+            "Originator_Customer_ID",
+            "Beneficiary_Name",
+            "Beneficiary_Account_ID",
+            "Beneficiary_Customer_ID",
+            "Trxn_Channel",
+            "Trxn_Date",
+            "Trxn_Amount",
+            "Branch_or_ATM Location"
+        }
+
+
+        self.summary_prompt = self.agent_config.get("summary_prompt") 
+        logging.info("Step 6: Read summary prompt for Transaction Generation Agent")   
+
+        logging.info("Running Transaction Generation Agent with test message...")
+        self.results = create_two_agent_chat(self.sar_agent,self.transaction_generation_agent,self.test_message,self.summary_prompt)
+    
+    def test_number_of_accounts_in_results(self):
+        """
+        Test that the output dictionary includes the expected account ID key.
+        In our example, '345723' is the only key in the final dictionary of transactions.
+        """
+        logging.info("Testing the presence of account ID '345723' in the results...")
+        self.assertIn("345723", self.results, "Expected account 345723 to appear in the transactions dictionary.")
+
+    def test_number_of_transactions_for_345723(self):
+        """
+        We expect three transactions in the agent's output for account '345723'
+        """
+        logging.info("Testing the number of transactions under account 345723...")
+        acct_dict = self.results["345723"]
+        self.assertEqual(len(acct_dict), 3, "Expected exactly 3 transactions for account 345723.")
+
+    def test_transaction_details(self):
+        """
+        Verifies that each transaction has all the required fields:
+          - Originator_Name
+          - Originator_Account_ID
+          - Originator_Customer_ID
+          - Beneficiary_Name
+          - Beneficiary_Account_ID
+          - Beneficiary_Customer_ID
+          - Trxn_Channel
+          - Trxn_Date
+          - Trxn_Amount
+          - Branch_or_ATM Location
+        """
+      
+
+        acct_dict = self.results["345723"]
+        for trx_id, trx_data in acct_dict.items():
+            logging.info(f"Checking transaction ID = {trx_id}")
+            # Check the presence of required keys
+            self.assertSetEqual(
+                self.required_keys, 
+                set(trx_data.keys()),
+                f"Transaction {trx_id} does not have the expected set of keys. "
+                f"Expected: {self.required_keys}, Found: {set(trx_data.keys())}"
+            )
+
+
+    def test_trxn_attributes(self):
+        """
+        Validates that the transaction attributes are as expected.
+        
+        """
+        for txn_id, expected_fields in self.expected_trxns.items():
+            with self.subTest(txn_id=txn_id):
+                actual_txn = self.results["345723"][txn_id]
+                for field_name, expected_val in expected_fields.items():
+                    self.assertEqual(
+                        actual_txn[field_name],
+                        expected_val,
+                        f"Mismatch for field '{field_name}' in transaction {txn_id}."
+                    )
+
+
 
 if __name__ == '__main__':
     unittest.main()
