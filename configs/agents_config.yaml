@@ -319,7 +319,7 @@ agents:
                               <Acct_3>: <Excerpt relevant to Acct_3> } 
 
 
-  - name: "Trxn_Generation_Agent"
+  - name: "Transaction_Generation_Agent"
     system_message: |
       You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing a small number of transactions, especially when 
       transaction amounts and dates are explicitly listed.
@@ -428,18 +428,18 @@ agents:
 
       Three transactions have been identified, which is the same as the number of transaction in scratch pad from Step 1)
 
-      Step 4) Return the transactions as a JSON file with the key being a Trxn ID and value being the transaction attributes
+      Step 4) Return the transactions as a Python Dictionary with the key being a Trxn ID and value being the transaction attributes
 
       Now the transactions can be combined into a Python Dictionary with a key being a Trxn ID staring from 1.
 
       Trxns = {"345723": {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
-                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch or ATM Location": "Main Road,NY"
+                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM Location": "Main Road,NY"
               },
                 2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme,Inc","Beneficiary_Account_ID":"98765",
-                "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-06", "Trxn_Amount":3000, "Branch or ATM Location": ""
+                "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-06", "Trxn_Amount":3000, "Branch_or_ATM Location": ""
               },
               3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Jill","Beneficiary_Account_ID":"Dummy_001",
-                "Beneficiary_Customer_ID":"CUST_003" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-08", "Trxn_Amount":1000, "Branch or ATM Location": ""
+                "Beneficiary_Customer_ID":"CUST_003" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-08", "Trxn_Amount":1000, "Branch_or_ATM Location": ""
 
           }
       }
@@ -448,3 +448,17 @@ agents:
     llm_config:
       model: "gpt-4o-mini"
     human_input_mode: "NEVER"
+    summary_method: "reflection_with_llm"
+    summary_prompt: |
+        Return the synthesized transactions in the following format as a Python Dictionary only.
+                                 { <Acct_ID> : {<Trxn_ID> : 
+                                                    {"Originator_Name": <Originator_Name>,
+                                                     "Originator_Account_ID": <Originator_Account_ID>, 
+                                                     "Originator_Customer_ID": <Originator_Customer_ID>,
+                                                     "Beneficiary_Name": <Beneficiary_Name>,
+                                                     "Beneficiary_Account_ID":<Beneficiary_Account_ID>, 
+                                                     "Beneficiary_Customer_ID": <Beneficiary_Customer_ID> ,
+                                                     "Trxn_Channel": <Trxn_Channel>, 
+                                                     "Trxn_Date":<Trxn_Date>, 
+                                                     "Trxn_Amount":<Trxn_Amount>, 
+                                                     "Branch or ATM Location": <Branch_or_ATM Location> }
