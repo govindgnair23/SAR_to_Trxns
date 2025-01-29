@@ -433,13 +433,13 @@ agents:
       Now the transactions can be combined into a Python Dictionary with a key being a Trxn ID staring from 1.
 
       Trxns = {"345723": {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
-                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM Location": "Main Road,NY"
+                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM_Location": "Main Road,NY"
               },
                 2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme,Inc","Beneficiary_Account_ID":"98765",
-                "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-06", "Trxn_Amount":3000, "Branch_or_ATM Location": ""
+                "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-06", "Trxn_Amount":3000, "Branch_or_ATM_Location": ""
               },
               3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Jill","Beneficiary_Account_ID":"Dummy_001",
-                "Beneficiary_Customer_ID":"CUST_003" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-08", "Trxn_Amount":1000, "Branch_or_ATM Location": ""
+                "Beneficiary_Customer_ID":"CUST_003" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-08", "Trxn_Amount":1000, "Branch_or_ATM_Location": ""
 
           }
       }
@@ -461,4 +461,4 @@ agents:
                                                      "Trxn_Channel": <Trxn_Channel>, 
                                                      "Trxn_Date":<Trxn_Date>, 
                                                      "Trxn_Amount":<Trxn_Amount>, 
-                                                     "Branch or ATM Location": <Branch_or_ATM Location> }
+                                                     "Branch_or_ATM_Location": <Branch_or_ATM Location> }
