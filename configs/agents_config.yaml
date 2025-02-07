@@ -194,8 +194,8 @@ agents:
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the extracted information as a Python dictionary only. Do not include any extra commentary, code fences, or text outside the dictionary.
-            {<Financial Institution 1>: { <ACCT_1> : <CUST_ID_1> , <ACCT_2> : <CUST_ID_2>, <ACCT_3> : <CUST_ID_3> }
-                                    <Financial Institution 2>: { <ACCT_4> : <CUST_ID_4> , <ACCT_5> : <CUST_ID_5>} }
+                  { "FI_to_Acct_to_Cust" :{<Financial Institution 1>: { <ACCT_1> : <CUST_ID_1> , <ACCT_2> : <CUST_ID_2>, <ACCT_3> : <CUST_ID_3> }
+                                           <Financial Institution 2>: { <ACCT_4> : <CUST_ID_4> , <ACCT_5> : <CUST_ID_5>} } }
 
  
   - name: "Narrative_Extraction_Agent"
@@ -314,9 +314,9 @@ agents:
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the extracted information as a Python dictionary only. Do not include any extra commentary, code fences, or text outside the dictionary.
-                             {<Acct_1>: <Excerpt relevant to Acct_1>,
-                              <Acct_2>: <Excerpt relevant to Acct_2>,
-                              <Acct_3>: <Excerpt relevant to Acct_3> } 
+                             {"Narratives": {<Acct_1>: <Excerpt relevant to Acct_1>,
+                                             <Acct_2>: <Excerpt relevant to Acct_2>,
+                                             <Acct_3>: <Excerpt relevant to Acct_3> } }
 
 
   - name: "Transaction_Generation_Agent"
@@ -352,7 +352,7 @@ agents:
 
       f) Identify the amount of the transaction (i.e. Trxn_Amount)
 
-      e) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Location). If this is not specified, it can be considered missing.
+      e) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). If this is not specified, it can be considered missing.
 
       Ensure the following are extracted.
 
@@ -365,7 +365,7 @@ agents:
       -Trxn_Channel
       -Trxn_Date in yyyy-mm-dd format
       -Trxn_Amount
-      -Location
+      -Branch_or_ATM_Location
 
       If any other information is missing and can't be reasonably assumed, use an empty string "" to indicate it is missing.
 
@@ -461,4 +461,106 @@ agents:
                                                      "Trxn_Channel": <Trxn_Channel>, 
                                                      "Trxn_Date":<Trxn_Date>, 
                                                      "Trxn_Amount":<Trxn_Amount>, 
-                                                     "Branch_or_ATM_Location": <Branch_or_ATM Location> }
+                                                     "Branch_or_ATM_Location": <Branch_or_ATM_Location> }
+
+
+  - name: "Transaction_Generation_Agent_w_Tool"
+    system_message: |
+      You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing transactions when a larger number of transactions
+      are made between two entities  when a range of trxn amounts and dates are specified. When invoked, use the provided function to generate transactions.
+
+      You will have the following four pieces of information.
+
+      
+      1) A Dictionary called Narrative with Account IDs as key  and  narratives describing transactions made by that account as the values. </n>
+      2) The mapping between Individuals and Organizations referenced in the narrative to Account IDs, given by the dictionary Acct_to_Cust. Note, account IDs starting with the prefix "Dummy_" 
+         are placeholders for account IDs that are referenced but have not been explicitly identified in the narrative. </n>
+      3) The mapping between Financial Institutions to Account IDs given by the dictionary Acct_to_FI. If the Financial institution for certain accounts are not specified in the narrative,
+        a dummy financial institution starting with "Dummy_Bank_" will be used for them.</n>
+      4) A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs given by the dictionary FI_to_Acct_to_Cust
+      
+      For the narrative corresponding  to each account ID, do the following:
+
+      Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
+
+      Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as a list. If this is missing, you can make a reasonable assumption.
+
+      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the 
+      Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
+
+      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating
+      the transaction.
+
+      Step 5) Identify the first and last dates the transactions. If this is missing, you can make reasonable assumptions.
+
+      Step 6) Identify the minimum and maximum amount of the transactions.
+
+      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted. 
+
+      Step 8) Ensure the following are extracted.
+
+      -N_transactions
+      -Originator_Name
+      -Originator_Account_ID
+      -Originator_Customer_ID
+      -Beneficiary_Name
+      -Beneficiary_Account_ID
+      -Beneficiary_Customer_ID
+      -Trxn_Channel or List of Trxn Channels
+      -First Trxn_Date and Last Trxn Date in yyyy-mm-dd format
+      -Min Trxn_Amount and Max Trxn_Amount
+      -Branch or ATM Location or List of such locations
+
+      If any information is missing and can't be reasonably assumed, use an empty string "" to indicate it is missing.
+
+      Step 9) Call the function `generate_transactions`  by passing the specified number of transactions and attributes collected above..
+
+      An example is given below, demarcated by the delimiter ----..
+
+      ----
+
+      Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.
+                              There were 10 trns, a mix of Wire and Checks, each transactions was $10,000"}
+
+                    Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
+                    Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank" } 
+                    FI_to_Acct_to_Cust =  {"Bank of America": {"345723":"CUST_001", "98765":"CUST_002"}, "Chase Bank": {"Dummy_001": "CUST_003"}}
+
+      
+        Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
+            There are a total of 10 transactions described, so N_transactions = 10.
+
+        Step 2) Identify the transaction channels or product used.
+            The transactions are a mix of Wires and Checks. So create a list ["Wire","Check"]
+
+
+        Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
+        
+
+        Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
+                
+        Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024.
+
+        Step 6) The mininmum and maximum transaction amount is $10,000
+
+        Step 7) Since the transactions are Wire or Chek transactions, Branch or ATM Location can be considered Missing. 
+        
+        Step 8) All the required attributes have been gathered.
+
+        Step 9) Call the function generate_transactions with the collected arguments. Return results as a Python Dictionary only.
+
+      ----
+    overwrite_instructions: True
+    overwrite_tools: True
+    llm_config:
+      model: "gpt-4o-mini"
+    
+  - name: "SAR_Agent_2"
+    system_message: "Share the SAR extract given so that other agents can generate transactions "
+    code_execution_config:
+      last_n_messages: 2
+      work_dir: "temp"
+      use_docker: False
+    human_input_mode: "NEVER"
+    llm_config:
+      model: "gpt-4o-mini"
