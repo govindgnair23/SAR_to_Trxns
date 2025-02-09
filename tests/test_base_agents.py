@@ -333,8 +333,6 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
                 )
             )
 
-import unittest
-import logging
 
 class Test_Transaction_Generation_Agent(unittest.TestCase):
     """
@@ -346,33 +344,33 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
       4) Returns a Python dictionary keyed by Transaction ID (e.g. 1, 2, 3).
     """
 
-    @classmethod
-    def setUpClass(cls):
+    
+    def setUpClass(self):
         """
         Runs once before any test methods in this class are executed.
         Loads agent configs, instantiates agents, and runs the scenario so the results
         are available to all tests.
         """
         logging.info("Loading agent configs...")
-        cls.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
 
         logging.info("Step 1: All agent configurations read")
-        cls.sar_agent_config = get_agent_config(cls.agent_configs, "SAR_Agent")
+        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
         logging.info("Step 2: Extracted config for SAR Agent")
-        cls.sar_agent = instantiate_base_agent('SAR_Agent', cls.sar_agent_config)
+        self.sar_agent = instantiate_base_agent('SAR_Agent', self.sar_agent_config)
         logging.info("Step 3: Instantiated SAR Agent")
         
         logging.info("Extracting Transaction_Generation_Agent config...")
-        cls.agent_config = get_agent_config(cls.agent_configs, "Transaction_Generation_Agent")
+        self.agent_config = get_agent_config(self.agent_configs, "Transaction_Generation_Agent")
 
         logging.info("Instantiating Transaction Generation Agent...")
-        cls.transaction_generation_agent = instantiate_base_agent(
+        self.transaction_generation_agent = instantiate_base_agent(
             'Transaction_Generation_Agent', 
-            cls.agent_config
+            self.agent_config
         )
 
         # Example test message we will reuse from instructions
-        cls.test_message = """
+        self.test_message = """
         1) Narrative = {
           "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
                      John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
@@ -387,7 +385,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         """
 
         # Expected Results
-        cls.expected_trxns = {
+        self.expected_trxns = {
             "345723": {
                 1: {
                     "Originator_Name": "John",
@@ -429,7 +427,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         }
 
         # Required fields for each transaction
-        cls.required_keys = {
+        self.required_keys = {
             "Originator_Name",
             "Originator_Account_ID",
             "Originator_Customer_ID",
@@ -442,16 +440,16 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
             "Branch_or_ATM Location"
         }
 
-        cls.summary_prompt = cls.agent_config.get("summary_prompt") 
+        self.summary_prompt = self.agent_config.get("summary_prompt") 
         logging.info("Step 6: Read summary prompt for Transaction Generation Agent")   
 
         logging.info("Running Transaction Generation Agent with test message...")
         # Generate the final results for all tests to use
-        cls.results = create_two_agent_chat(
-            cls.sar_agent,
-            cls.transaction_generation_agent,
-            cls.test_message,
-            cls.summary_prompt
+        self.results = create_two_agent_chat(
+            self.sar_agent,
+            self.transaction_generation_agent,
+            self.test_message,
+            self.summary_prompt
         )
 
     def test_number_of_accounts_in_results(self):
@@ -462,7 +460,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         logging.info("Testing the presence of account ID '345723' in the results...")
         self.assertIn(
             "345723", 
-            type(self).results, 
+            self.results, 
             "Expected account 345723 to appear in the transactions dictionary."
         )
 
@@ -471,18 +469,18 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         We expect three transactions in the agent's output for account '345723'
         """
         logging.info("Testing the number of transactions under account 345723...")
-        acct_dict = type(self).results["345723"]
+        acct_dict = self.results["345723"]
         self.assertEqual(len(acct_dict), 3, "Expected exactly 3 transactions for account 345723.")
 
     def test_transaction_details(self):
         """
         Verifies that each transaction has all the required fields.
         """
-        acct_dict = type(self).results["345723"]
+        acct_dict = self.results["345723"]
         for trx_id, trx_data in acct_dict.items():
             logging.info(f"Checking transaction ID = {trx_id}")
             self.assertSetEqual(
-                type(self).required_keys, 
+                self.required_keys, 
                 set(trx_data.keys()),
                 f"Transaction {trx_id} does not have the expected set of keys. "
             )
@@ -491,8 +489,8 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         """
         Validates that the transaction attributes are as expected.
         """
-        actual_345723 = type(self).results["345723"]
-        expected_345723 = type(self).expected_trxns["345723"]
+        actual_345723 = self.results["345723"]
+        expected_345723 = self.expected_trxns["345723"]
 
         for txn_id, expected_fields in expected_345723.items():
             with self.subTest(txn_id=txn_id):
@@ -503,6 +501,14 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                         expected_val,
                         f"Mismatch for field '{field_name}' in transaction {txn_id}."
                     )
+
+
+class Test_Agentic_workflow1(unittest.TestCase):
+    """
+    Tests the first agentic workflow starting with Entity Extraction and ending with Narrative Extraction.
+    """
+    
+
 
 if __name__ == '__main__':
     unittest.main()
