@@ -59,6 +59,7 @@ class TestWorkflow1(unittest.TestCase):
         test_args = ["main.py", file_name]
         with patch.object(sys, 'argv', test_args):
             cls.result = main.main(file_name) 
+            print(type(cls.result))
 
     def test_result_is_dict(self):
         """
