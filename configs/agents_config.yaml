@@ -448,6 +448,7 @@ agents:
     llm_config:
       model: "gpt-4o-mini"
     human_input_mode: "NEVER"
+    code_execution_config: False
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the synthesized transactions in the following format as a Python Dictionary only.
@@ -465,7 +466,7 @@ agents:
 
 
   - name: "Transaction_Generation_Agent_w_Tool"
-    system_message: |
+    instructions: |
       You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing transactions when a larger number of transactions
       are made between two entities  when a range of trxn amounts and dates are specified. When invoked, use the provided function to generate transactions.
 
@@ -564,3 +565,22 @@ agents:
     human_input_mode: "NEVER"
     llm_config:
       model: "gpt-4o-mini"
+
+  - name: "Group_Chat_Manager"
+    llm_config:
+      model: "gpt-4o-mini"
+    summary_method : "reflection_with_llm"
+    summary_prompt: |
+        Return the synthesized transactions in the following format as a Python Dictionary only.
+                                 { <Acct_ID> : {<Trxn_ID> : 
+                                                    {"Originator_Name": <Originator_Name>,
+                                                     "Originator_Account_ID": <Originator_Account_ID>, 
+                                                     "Originator_Customer_ID": <Originator_Customer_ID>,
+                                                     "Beneficiary_Name": <Beneficiary_Name>,
+                                                     "Beneficiary_Account_ID":<Beneficiary_Account_ID>, 
+                                                     "Beneficiary_Customer_ID": <Beneficiary_Customer_ID> ,
+                                                     "Trxn_Channel": <Trxn_Channel>, 
+                                                     "Trxn_Date":<Trxn_Date>, 
+                                                     "Trxn_Amount":<Trxn_Amount>, 
+                                                     "Branch_or_ATM_Location": <Branch_or_ATM_Location> }
+   
