@@ -103,29 +103,32 @@ def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
 # Not passing input dict to check instantiation
 def run_agentic_workflow2(input:Dict, config_file:str) -> Dict[str, Dict[int, Dict[str, Any]]] :
     #Convert Dict to string to pass to LLM
-    input = repr(input)
+    input_text = repr(input)
     agent_configs = load_agents_from_single_config(config_file)
     agents = instantiate_agents_for_trxn_generation(agent_configs)
     n_agents = len(agents)
     assert len(agents)==3 , f"The 3 agents required for trxn generation have not been passed. Only {n_agents} agents have been created"
 
     logging.info("All agents instantiated successfully")
-    agents_list = list(agents.values())
+    sar_agent = agents["SAR_Agent_2"]
+    trxn_generation_agent = agents["Transaction_Generation_Agent"]
+    trxn_generation_agent_w_tool = agents["Transaction_Generation_Agent_w_Tool"]
 
     ##########################################################
     # Instantiate Group Chat Manager Agent
     ##########################################################
 
-    group_chat_manager_config = get_agent_config(config_file, agent_name = "Group_Chat_Manager")
+    group_chat_manager_config = get_agent_config(agent_configs, agent_name = "Group_Chat_Manager")
     try:
         # Extract configuration parameters
         
         llm_config = group_chat_manager_config.get('llm_config')
         summary_method = group_chat_manager_config.get("summary_method")
         summary_prompt = group_chat_manager_config.get("summary_prompt")
-        logging.info(f"Loaded configuration for Group Chat and Group Chat Manager")
-        groupchat = GroupChat(agents = agents_list,messages=[],max_round=2)
+        logging.info("Loaded configuration for Group Chat and Group Chat Manager")
+        groupchat = GroupChat(agents = [trxn_generation_agent,trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
         manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
+        logging.info("Instantiated GroupChat and GroupChat Manager")
 
     except Exception as e:
         logging.error("Failed to instantiate Group Chat Manager")
@@ -133,12 +136,12 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> Dict[str, Dict[int, Di
 
     # Use DiskCache as cache
     with Cache.disk() as cache:
-        chat_results = agents["SAR_Agent_2"].initiate_chat(
+        chat_results = sar_agent.initiate_chat(
                     manager,
-                    message = input,
+                    message = input_text,
                     summary_method= summary_method,
                     summary_args = {
-                        "summary_prompt" : summary_prompt
+                        "summary_prompt":summary_prompt
                     } )
     results = chat_results.summary
     cleaned_results = results.strip("```python\n").strip("```")
@@ -146,7 +149,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> Dict[str, Dict[int, Di
     results_dict = ast.literal_eval(cleaned_results)
     logging.info("Results from  Transaction Generation Agent converted to a dictionary")
 
-    return results_dict
+    return  results_dict
 
 def main(filename):
     load_dotenv()
@@ -158,9 +161,14 @@ def main(filename):
 
     # Run first agentic workflow
     results1 = run_agentic_workflow1(message,config_file)
+
+    #Loop through the narrative for each account and generate transactions - To be Done
+    ###For now just pick one account for testing purposes.
+    results1_p1 = {key: (value if key != 'Narratives' else {'345723': value['345723']}) for key, value in results1.items()}
+
     
     # Run second agentic worklfow
-    results2 = run_agentic_workflow2(results1,config_file)
+    results2 = run_agentic_workflow2(results1_p1,config_file)
     
     return results1, results2
     # output_file_path = "./data/output/results0.json"
