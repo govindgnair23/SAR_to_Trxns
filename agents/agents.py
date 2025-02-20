@@ -1,4 +1,4 @@
-from autogen import ConversableAgent , initiate_chats, GroupChat , GroupChatManager
+from autogen import ConversableAgent 
 from autogen.agentchat.contrib.gpt_assistant_agent import GPTAssistantAgent
 from autogen.function_utils import get_function_schema
 import logging
@@ -134,6 +134,7 @@ def instantiate_agents_for_trxn_generation(configs):
             llm_config=llm_config,
             code_execution_config = code_execution_config,
             human_input_mode=human_input_mode,
+            description = ""
         )
         logging.info("SAR Agent 2 instantiated successfully.")
         agents["SAR_Agent_2"] = agent1
@@ -153,6 +154,7 @@ def instantiate_agents_for_trxn_generation(configs):
         llm_config = trxn_generation_agent_config.get('llm_config')
         human_input_mode = trxn_generation_agent_config.get('human_input_mode')
         code_execution_config = trxn_generation_agent_config.get("trxn_generation_agent_config", False)
+        description = trxn_generation_agent_config.get("description","")
         # summary_method = trxn_generation_agent_config.get('summary_method')
         # summary_prompt = trxn_generation_agent_config.get('summary_prompt')
 
@@ -164,7 +166,8 @@ def instantiate_agents_for_trxn_generation(configs):
             system_message=system_message,
             llm_config=llm_config,
             human_input_mode=human_input_mode,
-            code_execution_config =code_execution_config
+            code_execution_config =code_execution_config,
+            description= description
         )
         logging.info("Transaction_Generation_Agent instantiated successfully.")
 
@@ -173,15 +176,6 @@ def instantiate_agents_for_trxn_generation(configs):
         logging.error("Failed to instantiate Transaction_Generation_Agent")
         raise
 
-    # logging.info
-    # config_list = config_list_from_dotenv(
-    # dotenv_file_path="../.env",
-    # model_api_key_map={
-    #     "gpt-4o": "OPENAI_API_KEY", 
-    #     "gpt-4o-mini": "OPENAI_API_KEY"
-    # },
-    # filter_dict={"model":["gpt-4o-mini"]}
-    #  )
 
     #Assistant API Tool Schema for Trxn Generation
     generate_transactions_schema = get_function_schema(
@@ -202,6 +196,7 @@ def instantiate_agents_for_trxn_generation(configs):
         agent_name = trxn_generation_agent_w_tool_config.get('name', 'Default_Agent_Name')
         instructions = trxn_generation_agent_w_tool_config.get('instructions')
         llm_config = trxn_generation_agent_w_tool_config.get('llm_config')
+        description =  trxn_generation_agent_w_tool_config.get("description","")
         # overwrite_instructions = trxn_generation_agent_w_tool_config.get('overwrite_instructions')
         # overwrite_tools = trxn_generation_agent_w_tool_config.get('overwrite_tools')
 
@@ -211,6 +206,7 @@ def instantiate_agents_for_trxn_generation(configs):
         agent3 = GPTAssistantAgent(
             name=agent_name,
             instructions=instructions,
+            description = description,
             llm_config= {
                     "config_list":config_list,
                     "tools":[generate_transactions_schema]
@@ -218,7 +214,7 @@ def instantiate_agents_for_trxn_generation(configs):
                 },
         )
         logging.info("Transaction_Generation_Agent with tool  instantiated successfully.")
-        agents["Transaction_Generation_Agent_w_tool"] = agent3
+        agents["Transaction_Generation_Agent_w_Tool"] = agent3
     except Exception as e:
         logging.error("Failed to instantiate Transaction_Generation_Agent with tool")
         raise
