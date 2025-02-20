@@ -449,6 +449,7 @@ agents:
       model: "gpt-4o-mini"
     human_input_mode: "NEVER"
     code_execution_config: False
+    description: "An AI Assistant who is good at generating a small number of transactions especially when the precise trxn amount of each trxn is known"
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the synthesized transactions in the following format as a Python Dictionary only.
@@ -467,8 +468,7 @@ agents:
 
   - name: "Transaction_Generation_Agent_w_Tool"
     instructions: |
-      You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing transactions when a larger number of transactions
-      are made between two entities  when a range of trxn amounts and dates are specified. When invoked, use the provided function to generate transactions.
+      You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing transactions when a larger number of transactions are made between two entities  when a range of trxn amounts and dates are specified. When invoked, use the provided function to generate transactions.
 
       You will have the following four pieces of information.
 
@@ -553,6 +553,7 @@ agents:
       ----
     overwrite_instructions: True
     overwrite_tools: True
+    description: "An AI Assistant who is good at generating a large number of transactions especially when the precise trxn amount of each trxn is NOT known"
     llm_config:
       model: "gpt-4o-mini"
     
