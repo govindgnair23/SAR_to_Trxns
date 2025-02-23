@@ -5,6 +5,8 @@ import sys
 from contextlib import redirect_stdout
 from unittest.mock import patch
 import main  
+from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
+
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -48,18 +50,17 @@ class TestWorkflow1(unittest.TestCase):
             }
         }
 
-        # Run workflow on the input file  
-        file_name = "test_sar_1.txt"
-         # Use a known file from the data/input folder.
-        test_file = os.path.join("data", "input", file_name )
-        # Ensure the file exists before testing.
-        cls.assertTrue(os.path.exists(test_file), f"{test_file} does not exist.")
+        test_sar1  = '''
+                John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.
+                Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a Business account, Account #98765. 
+                John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+
+            '''
+
         
-        # Prepare a fake sys.argv to simulate command-line arguments.
-        test_args = ["main.py", file_name]
-        with patch.object(sys, 'argv', test_args):
-            cls.result = main.main(file_name) 
-            print(type(cls.result))
+ 
+        config_file = 'configs/agents_config.yaml' 
+        cls.result = run_agentic_workflow1(test_sar1,config_file)
 
     def test_result_is_dict(self):
         """
@@ -201,7 +202,94 @@ class TestWorkflow1(unittest.TestCase):
             msg=f"Expected Narratives {expected_narratives} but got {actual_narratives}"
         )
 
+class TestWorkflow2(unittest.TestCase):
+    '''
+    Testing workflow to take extracted narrative and return transactions.
+    '''
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
 
+        cls.expected_transactions_case1 = {
+                    "345723": {
+                                1: {
+                                    "Originator_Name": "John",
+                                    "Originator_Account_ID": "345723",
+                                    "Originator_Customer_ID": "CUST_001",
+                                    "Beneficiary_Name": "John",
+                                    "Beneficiary_Account_ID": "345723",
+                                    "Beneficiary_Customer_ID": "CUST_001",
+                                    "Trxn_Channel": "Cash",
+                                    "Trxn_Date": "2025-01-05",
+                                    "Trxn_Amount": 5000,
+                                    "Branch_or_ATM_Location": "Bank of America"
+                                },
+                                2: {
+                                    "Originator_Name": "John",
+                                    "Originator_Account_ID": "345723",
+                                    "Originator_Customer_ID": "CUST_001",
+                                    "Beneficiary_Name": "Jill",
+                                    "Beneficiary_Account_ID": "Dummy_Acct_1",
+                                    "Beneficiary_Customer_ID": "CUST_002",
+                                    "Trxn_Channel": "Wire",
+                                    "Trxn_Date": "2025-02-01",
+                                    "Trxn_Amount": 3000,
+                                    "Branch_or_ATM_Location": ""
+                                }
+                            }
+                                    }
+        cls.expected_trxns_stats_case2 = {
+        } 
+        cls.expected_trxns_stats_case3 = {
+        } 
+
+
+        test_input1  = {'Entities': 
+                            {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                            'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                      'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                      'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                      'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                      'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                      'Narratives': {'345723': "John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 5,2025. John sends $3000 to Jill's account at Chase on Feb 1,2025."}}
+        
+        test_input2  = {'Entities': 
+                            {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                            'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                      'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                      'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                      'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                      'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                      'Narratives': {'345723': "John sent a total of 25 Wires from Acct #345723 at Bank of America  to Jill's account at Chase. The Wire trxns occured between Jan 1,2025 and Jan 31,2025 \
+                                      and ranged between $5000 and $10,000 "}}
+        
+        
+        test_input3  = {'Entities': 
+                            {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                            'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                      'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                      'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                      'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                      'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                      'Narratives': {'345723': "John sent a total of $500,000 from Acct #345723 at Bank of America  to Jill's account at Chase. The Wire trxns occured between Jan 1,2025 and Jan 31,2025 \
+                                      and ranged between $5000 and $10,000 "}}
+        
+        test_input4  = {'Entities': 
+                        {'Individuals': ['John', 'Jill'], 
+                        'Organizations': ['Acme Inc'], 
+                        'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                    'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                    'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                    'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                    'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                    'Narratives': {'345723': "John sent a total of $500,000 from Acct #345723 at Bank of America  to Jill's account at Chase. The 15 Wire trxns occured between Jan 1,2025 and Jan 31,2025 "}}
+
+ 
+        config_file = 'configs/agents_config.yaml' 
+        cls.result1 = run_agentic_workflow2(test_input1,config_file)
 
 if __name__ == '__main__':
     unittest.main()
