@@ -1,12 +1,9 @@
 import unittest
 import logging
-import os
-import sys
 from contextlib import redirect_stdout
 from unittest.mock import patch
-import main  
 from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
-
+from utils import get_config_list, compare_dicts
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -210,41 +207,13 @@ class TestWorkflow2(unittest.TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.expected_transactions_case1 = {
-                    "345723": {
-                                1: {
-                                    "Originator_Name": "John",
-                                    "Originator_Account_ID": "345723",
-                                    "Originator_Customer_ID": "CUST_001",
-                                    "Beneficiary_Name": "John",
-                                    "Beneficiary_Account_ID": "345723",
-                                    "Beneficiary_Customer_ID": "CUST_001",
-                                    "Trxn_Channel": "Cash",
-                                    "Trxn_Date": "2025-01-05",
-                                    "Trxn_Amount": 5000,
-                                    "Branch_or_ATM_Location": "Bank of America"
-                                },
-                                2: {
-                                    "Originator_Name": "John",
-                                    "Originator_Account_ID": "345723",
-                                    "Originator_Customer_ID": "CUST_001",
-                                    "Beneficiary_Name": "Jill",
-                                    "Beneficiary_Account_ID": "Dummy_Acct_1",
-                                    "Beneficiary_Customer_ID": "CUST_002",
-                                    "Trxn_Channel": "Wire",
-                                    "Trxn_Date": "2025-02-01",
-                                    "Trxn_Amount": 3000,
-                                    "Branch_or_ATM_Location": ""
-                                }
-                            }
-                                    }
         cls.expected_trxns_stats_case2 = {
         } 
         cls.expected_trxns_stats_case3 = {
         } 
 
 
-        test_input1  = {'Entities': 
+        cls.test_input1  = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                             'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -252,9 +221,38 @@ class TestWorkflow2(unittest.TestCase):
                       'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
                       'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
                       'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
-                      'Narratives': {'345723': "John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 5,2025. John sends $3000 to Jill's account at Chase on Feb 1,2025."}}
+                      'Narratives': {'345723': "John deposited $5000 in Cash into Acct #345723 at Bank of America at the New York branch on Jan 5,2025. John sends $3000 to Jill's account at Chase on Feb 1,2025."}}
         
-        test_input2  = {'Entities': 
+        cls.expected_results1 = {
+                                    "345723": {
+                                        1: {
+                                            "Originator_Name": "John",
+                                            "Originator_Account_ID": "345723",
+                                            "Originator_Customer_ID": "CUST_001",
+                                            "Beneficiary_Name": "John",
+                                            "Beneficiary_Account_ID": "345723",
+                                            "Beneficiary_Customer_ID": "CUST_001",
+                                            "Trxn_Channel": "Cash",
+                                            "Trxn_Date": "2025-01-05",
+                                            "Trxn_Amount": 5000,
+                                            "Branch_or_ATM_Location": "New York"
+                                        },
+                                        2: {
+                                            "Originator_Name": "John",
+                                            "Originator_Account_ID": "345723",
+                                            "Originator_Customer_ID": "CUST_001",
+                                            "Beneficiary_Name": "Jill",
+                                            "Beneficiary_Account_ID": "Dummy_Acct_1",
+                                            "Beneficiary_Customer_ID": "CUST_002",
+                                            "Trxn_Channel": "Wire",
+                                            "Trxn_Date": "2025-02-01",
+                                            "Trxn_Amount": 3000,
+                                            "Branch_or_ATM_Location": ""
+                                        }
+                                    }
+                                }
+        
+        cls.test_input2  = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                             'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -264,9 +262,8 @@ class TestWorkflow2(unittest.TestCase):
                       'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
                       'Narratives': {'345723': "John sent a total of 25 Wires from Acct #345723 at Bank of America  to Jill's account at Chase. The Wire trxns occured between Jan 1,2025 and Jan 31,2025 \
                                       and ranged between $5000 and $10,000 "}}
-        
-        
-        test_input3  = {'Entities': 
+            
+        cls.test_input3  = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                             'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -277,7 +274,7 @@ class TestWorkflow2(unittest.TestCase):
                       'Narratives': {'345723': "John sent a total of $500,000 from Acct #345723 at Bank of America  to Jill's account at Chase. The Wire trxns occured between Jan 1,2025 and Jan 31,2025 \
                                       and ranged between $5000 and $10,000 "}}
         
-        test_input4  = {'Entities': 
+        cls.test_input4  = {'Entities': 
                         {'Individuals': ['John', 'Jill'], 
                         'Organizations': ['Acme Inc'], 
                         'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -288,8 +285,25 @@ class TestWorkflow2(unittest.TestCase):
                     'Narratives': {'345723': "John sent a total of $500,000 from Acct #345723 at Bank of America  to Jill's account at Chase. The 15 Wire trxns occured between Jan 1,2025 and Jan 31,2025 "}}
 
  
-        config_file = 'configs/agents_config.yaml' 
-        cls.result1 = run_agentic_workflow2(test_input1,config_file)
+        cls.config_file = 'configs/agents_config.yaml' 
+        #Use this to test outputs follow expected format.
+        cls.result1 = run_agentic_workflow2(cls.test_input1,cls.config_file)
+
+    def test_result_is_dict(self):
+        """
+        Test that the output from the workflow is a valid Python dictionary.
+        """
+        self.assertIsInstance(self.result1, dict, "Expected result to be a dictionary, but got a different type.")
+
+
+
+    def test_trxns_case1(self):
+        """
+        Test that all expected keys and values are present.
+        """
+
+        compare_dicts(self,self.result1,self.expected_results1,path= "root")
+
 
 if __name__ == '__main__':
     unittest.main()
