@@ -6,6 +6,7 @@ import logging
 import json
 from difflib import SequenceMatcher
 import autogen
+import unittest
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -200,5 +201,34 @@ def get_config_list():
 
     return config_list
     
+def compare_dicts(test_case, actual, expected, path="root"):
+    """
+    Recursively compare two dictionaries, raising detailed AssertionError
+    if there is any mismatch in keys or values, indicating where the mismatch occurs.
+    """
+
+    # Check all keys in the expected dictionary
+    for key in expected:
+        new_path = f"{path}['{key}']"  # Path to this key
+        test_case.assertIn(key, actual, f"Missing key at {new_path} in the actual dictionary")
+
+        # If the value is itself a dict, recurse; otherwise, do a direct comparison
+        if isinstance(expected[key], dict):
+            test_case.assertIsInstance(
+                actual[key], dict,
+                f"Type mismatch at {new_path}: expected dict, got {type(actual[key])}"
+            )
+            compare_dicts(test_case, actual[key], expected[key], new_path)
+        else:
+            test_case.assertEqual(
+                actual[key],
+                expected[key],
+                f"Value mismatch at {new_path}: expected {expected[key]}, got {actual[key]}"
+            )
+
+    # Check if there are any extra keys in the actual dictionary that are not in expected
+    for key in actual:
+        new_path = f"{path}['{key}']"
+        test_case.assertIn(key, expected, f"Unexpected key at {new_path} found in actual dictionary")
 
     
