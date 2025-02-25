@@ -6,6 +6,8 @@ import logging
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
 
+## Todo : Need to change the setUp to setUp class. 
+
 class Test_Entity_Extraction_Agent(unittest.TestCase):
     '''
     Tests for the Entity Extraction Agent
@@ -503,15 +505,6 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                     )
 
 
-class Test_Agentic_workflow1(unittest.TestCase):
-    """
-    Tests the first agentic workflow starting with Entity Extraction and ending with Narrative Extraction.
-    """
-    
-
-
-if __name__ == '__main__':
-    unittest.main()
 
 
 
