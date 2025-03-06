@@ -237,3 +237,148 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
     return metrics_df, narratives_df
 
+
+
+def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str, Any]]]) -> Dict[str, Dict[str, Dict[str, Any]]]:
+    """
+    Compare actual transactions in `df` with expected transaction sets in `expected_trxns`.
+    For each transaction set, compute:
+      - The percentage mismatch in total transaction amount (Amount_pct_diff).
+      - The percentage mismatch in the count of transactions (Count_pct_diff).
+      - A boolean flag (Date_range_ok) indicating whether all actual transactions
+        fall within the expected date range [Min_Date, Max_Date].
+      - A list of missing transaction channels (Missing_channels) that were expected but not present.
+      - A list of extra transaction channels (Extra_channels) that were present but not expected.
+      - A boolean flag (Channels_match) which is True if observed and expected channels match exactly.
+      - A boolean flag (Ind_Amt_in_range) indicating whether all transaction amounts fall
+        within the expected [Min_Ind_Amt, Max_Ind_Amt].
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing transaction data. Expected columns include:
+            "Originator_Account_ID"
+            "Beneficiary_Account_ID"
+            "Trxn_Date"
+            "Trxn_Amount"
+            "Trxn_Channel"
+        (plus any others needed).
+    expected_trxns : dict
+        Nested dictionary of the form:
+        {
+          "SAR_1": {
+             "Trxn_Set_1": {
+                 "Originator_Account_ID": str,
+                 "Beneficiary_Account_ID": str,
+                 "Total_Amount": float,
+                 "Trxn_Type": List[str],
+                 "Min_Date": str (yyyy-mm-dd),
+                 "Max_Date": str (yyyy-mm-dd),
+                 "Min_Ind_Amt": float,
+                 "Max_Ind_Amt": float,
+                 "N_trxns": int
+              },
+              "Trxn_Set_2": { ... },
+              ...
+          }
+        }
+
+    Returns
+    -------
+    Dict[str, Dict[str, Dict[str, Any]]]
+        A dictionary mirroring the structure of `expected_trxns`, where each
+        Trxn_Set entry contains:
+          {
+            "Amount_pct_diff": <float>,
+            "Count_pct_diff": <float>,
+            "Date_range_ok": <bool>,
+            "Missing_channels": <List[str]>,
+            "Extra_channels": <List[str]>,
+            "Channels_match": <bool>,
+            "Ind_Amt_in_range": <bool>
+          }
+        indicating the comparison results for each Trxn_Set.
+    """
+
+    # Ensure Trxn_Date is a datetime type
+    if not pd.api.types.is_datetime64_any_dtype(df["Trxn_Date"]):
+        df["Trxn_Date"] = pd.to_datetime(df["Trxn_Date"])
+
+    results = {}
+
+    for sar_id, trx_sets in expected_trxns.items():
+        sar_results = {}
+        for set_id, expected in trx_sets.items():
+            # Filter the DataFrame based on the expected Originator_Account_ID and Beneficiary_Account_ID
+            sub_df = df[
+                (df["Originator_Account_ID"] == expected["Originator_Account_ID"]) &
+                (df["Beneficiary_Account_ID"] == expected["Beneficiary_Account_ID"])
+            ]
+
+            expected_amount = float(expected["Total_Amount"])
+            expected_count = int(expected["N_trxns"])
+
+            # Convert expected date strings to actual datetime objects
+            min_date = pd.to_datetime(expected["Min_Date"])
+            max_date = pd.to_datetime(expected["Max_Date"])
+
+            # Actual total amount and count
+            actual_amount = sub_df["Trxn_Amount"].sum()
+            actual_count = len(sub_df)
+
+            # Calculate percentage mismatch in amount
+            if expected_amount == 0:
+                # Avoid division by zero
+                amount_pct_diff = 0.0 if actual_amount == 0 else 100.0
+            else:
+                amount_pct_diff = ((actual_amount - expected_amount) / expected_amount) * 100.0
+
+            # Calculate percentage mismatch in count
+            if expected_count == 0:
+                # Avoid division by zero
+                count_pct_diff = 0.0 if actual_count == 0 else 100.0
+            else:
+                count_pct_diff = ((actual_count - expected_count) / expected_count) * 100.0
+
+            # Check if all dates in the subset are within the expected range
+            if not sub_df.empty:
+                sub_min_date = sub_df["Trxn_Date"].min()
+                sub_max_date = sub_df["Trxn_Date"].max()
+                date_range_ok = (sub_min_date >= min_date) and (sub_max_date <= max_date)
+            else:
+                # No matching rows => can't confirm date range, mark as False or True as desired
+                date_range_ok = False
+
+            # Compare transaction channels
+            actual_channels = set(sub_df["Trxn_Channel"].unique()) if not sub_df.empty else set()
+            expected_channels = set(expected["Trxn_Type"])
+            missing_channels = list(expected_channels - actual_channels)
+            extra_channels = list(actual_channels - expected_channels)
+
+            # Check if sets exactly match
+            channels_match = (actual_channels == expected_channels)
+
+            # Check min/max amounts to see if they fall within expected [Min_Ind_Amt, Max_Ind_Amt]
+            if not sub_df.empty:
+                sub_min_amt = sub_df["Trxn_Amount"].min()
+                sub_max_amt = sub_df["Trxn_Amount"].max()
+                min_amt_ok = sub_min_amt >= expected["Min_Ind_Amt"]
+                max_amt_ok = sub_max_amt <= expected["Max_Ind_Amt"]
+                ind_amt_in_range = (min_amt_ok and max_amt_ok)
+            else:
+                # No rows => not in range by default (or True if you want to treat "no rows" as trivially inside range)
+                ind_amt_in_range = False
+
+            sar_results[set_id] = {
+                "Amount_pct_diff": amount_pct_diff,
+                "Count_pct_diff": count_pct_diff,
+                "Date_range_ok": date_range_ok,
+                "Missing_channels": missing_channels,
+                "Extra_channels": extra_channels,
+                "Channels_match": channels_match,
+                "Ind_Amt_in_range": ind_amt_in_range
+            }
+
+        results[sar_id] = sar_results
+
+    return results
