@@ -6,7 +6,7 @@ import logging
 import json
 from difflib import SequenceMatcher
 import autogen
-import unittest
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -160,18 +160,13 @@ def write_dict_to_json_file(data_dict, file_path):
     Writes the provided dictionary to a JSON file at the specified path.
     Ensures that the target directory exists.
     """
-    # Extract directory from file path
     directory = os.path.dirname(file_path)
-    
-    # Create directory if it doesn't exist
     if not os.path.exists(directory):
         try:
             os.makedirs(directory)
             print(f"Created directory: {directory}")
         except OSError as e:
             raise OSError(f"Failed to create directory {directory}: {e}") from e
-    
-    # Write dictionary to JSON file with pretty formatting
     try:
         with open(file_path, 'w', encoding='utf-8') as json_file:
             json.dump(data_dict, json_file, indent=4)
@@ -190,6 +185,9 @@ def approximate_match_ratio(str_a, str_b):
 
 
 def get_config_list():
+    '''
+    Prepare Open AI API keys in a format suitable for GPT Assistant Agent
+    '''
     config_list = autogen.config_list_from_dotenv(
     dotenv_file_path="./.env",
     model_api_key_map={
@@ -232,3 +230,38 @@ def compare_dicts(test_case, actual, expected, path="root"):
         test_case.assertIn(key, expected, f"Unexpected key at {new_path} found in actual dictionary")
 
     
+def flatten_nested_mapping(nested_dict):
+    """
+    Convert a nested dictionary like
+        {
+            'Bank1': {'Acct1': 'Cust1', 'Acct2': 'Cust2'},
+            'Bank2': {'Acct3': 'Cust3'}
+        }
+    into a set of tuples:
+        {('Bank1', 'Acct1', 'Cust1'),
+         ('Bank1', 'Acct2', 'Cust2'),
+         ('Bank2', 'Acct3', 'Cust3')}
+    """
+    flat_set = set()
+    for bank, acct_dict in nested_dict.items():
+        for acct, cust_id in acct_dict.items():
+            flat_set.add((bank, acct, cust_id))
+    return flat_set
+
+
+def generate_dynamic_output_file_name(filename,output_folder= "./data/output"):
+    '''
+    Function that creates a dynamic file name so that file will be written into the appropriate folder.
+    
+    '''
+    
+    # Get the base name without extension, e.g., "sar1_train" from "sar1_train.txt"
+    base_name = os.path.splitext(os.path.basename(filename))[0]
+    # Create a timestamp in the format YYYYMMDD_HHMMSS
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Generate the new file name
+    output_filename = f"results_{base_name}_{timestamp}.json"
+    # Create the full output file path
+    output_file_path = os.path.join(output_folder, output_filename)
+
+    return output_file_path
