@@ -130,7 +130,7 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
                                             'Bank of Anan': {'3489728': 'CUST_003'}},
                       'Narrative': {'12345-6789': ' Between January 2 and March 17, 2003, 13 deposits totaling approximately $50,000 were posted to the account, consisting of cash, checks, and money orders, with amounts ranging from $1,500 to $9,500. Third-party out of state checks and money orders were also deposited. Between January 17, 2003, and March 21, 2003, John Doe originated nine wires totaling $225,000 to the Bank of Anan in Dubai, UAE, to benefit Kulkutta Building Supply Company, account #3489728.',
                                     '23456-7891': ' Between January 2 and March 17, 2003, 33 deposits totaling approximately $275,000 were made to the account, consisting of cash, checks, and money orders. Individual amounts ranged between $4,446 and $9,729; 22 of 33 deposits were between $9,150 and $9,980. In nine instances where cash deposits were made to both accounts on the same day, combined deposits exceeded $10,000. Currency transaction reports were filed with the IRS for daily transactions exceeding $10,000. The bank identified Acme, Inc. as providing remittance services to the Middle East, including Iran, without being a licensed money wire transfer business.',
-                                     '3489728': "Nine wire transfers totaling $225,000 were sent from John Doe's personal account #12345-6789 at Dummy_Bank_1 to Kulkutta Building Supply Company, account #3489728 at the Bank of Anan in Dubai, UAE, between January 17, 2003, and March 21, 2003."}
+                                    '3489728': "Nine wire transfers totaling $225,000 were sent from John Doe's personal account #12345-6789 at Dummy_Bank_1 to Kulkutta Building Supply Company, account #3489728 at the Bank of Anan in Dubai, UAE, between January 17, 2003, and March 21, 2003."}
 
                     }
 
@@ -291,11 +291,14 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
           {
             "Amount_pct_diff": <float>,
             "Count_pct_diff": <float>,
-            "Date_range_ok": <bool>,
+            "N_trxns_in_date_range": <float>,
             "Missing_channels": <List[str]>,
             "Extra_channels": <List[str]>,
             "Channels_match": <bool>,
-            "Ind_Amt_in_range": <bool>
+            "Missing_locations": <List[str]>,
+            "Extra_locations": <List[str]>,
+            "Locations_match": <bool>,
+            "Perc_ind_amt_in_range": <float>
           }
         indicating the comparison results for each Trxn_Set.
     """
@@ -345,6 +348,8 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
                 sub_min_date = sub_df["Trxn_Date"].min()
                 sub_max_date = sub_df["Trxn_Date"].max()
                 date_range_ok = (sub_min_date >= min_date) and (sub_max_date <= max_date)
+                n_trxns_in_date_range = date_range_ok.sum()/actual_count
+
             else:
                 # No matching rows => can't confirm date range, mark as False or True as desired
                 date_range_ok = False
@@ -358,25 +363,41 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
             # Check if sets exactly match
             channels_match = (actual_channels == expected_channels)
 
-            # Check min/max amounts to see if they fall within expected [Min_Ind_Amt, Max_Ind_Amt]
+            # Compare Branch and ATM Locations
+            actual_locations = set(sub_df["Trxn_Branch_ATM_Location"].unique()) if not sub_df.empty else set()
+            expected_locations = set(expected["Trxn_Branch_ATM_Location"])
+            if len(expected_locations) > 0: # Locations are expected
+                missing_locations = list(expected_locations - actual_locations)
+                extra_locations = list(actual_locations - expected_locations)
+            else:
+                missing_locations = []
+                extra_locations = []
+
+            # Check if location sets exactly match
+            locations_match = (actual_locations == expected_locations)
+
+            
+
+            # Check Individual Trxns to see how many fall  within expected [Min_Ind_Amt, Max_Ind_Amt]
             if not sub_df.empty:
-                sub_min_amt = sub_df["Trxn_Amount"].min()
-                sub_max_amt = sub_df["Trxn_Amount"].max()
-                min_amt_ok = sub_min_amt >= expected["Min_Ind_Amt"]
-                max_amt_ok = sub_max_amt <= expected["Max_Ind_Amt"]
-                ind_amt_in_range = (min_amt_ok and max_amt_ok)
+                ind_amt_ok_bool = (sub_df["Trxn_Amount"] >= expected["Min_Ind_Amt"]) & (sub_df["Trxn_Amount"] <= expected["Max_Ind_Amt"])
+                ind_amt_in_range = ind_amt_ok_bool.sum()
+                perc_ind_amt_in_range = ind_amt_in_range/actual_count
             else:
                 # No rows => not in range by default (or True if you want to treat "no rows" as trivially inside range)
-                ind_amt_in_range = False
+                ind_amt_in_range = 0
 
             sar_results[set_id] = {
                 "Amount_pct_diff": amount_pct_diff,
                 "Count_pct_diff": count_pct_diff,
-                "Date_range_ok": date_range_ok,
+                "N_trxns_in_date_range": n_trxns_in_date_range,
                 "Missing_channels": missing_channels,
                 "Extra_channels": extra_channels,
                 "Channels_match": channels_match,
-                "Ind_Amt_in_range": ind_amt_in_range
+                "Missing_locations": missing_locations,
+                "Extra_locations": extra_locations,
+                "Locations_match": locations_match,
+                "Perc_ind_amt_in_range": perc_ind_amt_in_range
             }
 
         results[sar_id] = sar_results
