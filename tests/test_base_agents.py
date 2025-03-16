@@ -237,75 +237,104 @@ class Test_Entity_Resolution_Agent(unittest.TestCase):
 
 
 class Test_Narrative_Extraction_Agent(unittest.TestCase):
-    
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         logging.info("Loading agent configs...")
-        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+        cls.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
 
         logging.info("Step 1: All agent configurations read")
-        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
+        cls.sar_agent_config = get_agent_config(cls.agent_configs, "SAR_Agent")
         logging.info("Step 2: Extracted config for SAR Agent")
-        self.sar_agent = instantiate_base_agent('SAR_Agent',self.sar_agent_config )
+        cls.sar_agent = instantiate_base_agent('SAR_Agent',cls.sar_agent_config )
         logging.info("Step 3: Instantiated SAR Agent")
 
         
-        self.agent_config = get_agent_config(self.agent_configs, "Narrative_Extraction_Agent")
+        cls.agent_config = get_agent_config(cls.agent_configs, "Narrative_Extraction_Agent")
         logging.info("Step 4: Extracting Narrative_Extraction_Agent config...")
 
         
-        self.narrative_extraction_agent = instantiate_base_agent('Narrative_Extraction_Agent', 
-                                                                 self.agent_config)
+        cls.narrative_extraction_agent = instantiate_base_agent('Narrative_Extraction_Agent', 
+                                                                 cls.agent_config)
         
         logging.info("Step 5: Instantiating Narrative Extraction Agent...")
 
         # Example message & expected result
-        self.message1 = """
+        cls.message1 = """
         1) Account_IDs = ["345723","98765","12345","99999","Dummy_Acct_1"]
         2) Acct_to_Cust =  {"345723": "John","99999":"John","12345":"Jill","Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
         3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America",
                           "Dummy_Acct_1":"Chase Bank","98765":"Dummy_Bank_1"}
         4) Narrative:
-           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America.
-           John sends $4000  from Acct #345723 to Jill's account at  Chase Bank.
-           Jill deposited $3000 in Cash into her Acct at Chase Bank and then wired $2000 to her Acct #12345 at Bank of America.
-           John and Jill own a business Acme Inc that has a Business account, Account #98765.
-           John sends $2000 from Acct #99999 to Account #98765.
-           Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire.
+           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
         """
 
-        self.expected_dict1 = {
-            "345723": (
-                "John deposited $5000 each in Cash into Acct #345723 at Bank of America. "
-                "John sends $4000  from Acct #345723 to Jill's account at  Chase."
-            ),
-            "98765":  "John sends $2000 from Acct #99999 to Account #98765.",
-            "12345":  (
-                "Jill deposited $3000 in Cash into her Acct at Chase Bank and then wired "
-                "$2000 to her Acct #12345 at Bank of America"
-            ),
-            "99999":  "John sends $2000 from Acct #99999 to Account #98765",
-            "Dummy_Acct_1": (
-                "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank. "
-                "Jill deposited $3000 in Cash into her Acct at Chase Bank and  then  wired "
-                "$2000 from that account to her Acct #12345 at Bank of America. "
-                "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire."
-            )
+        cls.expected_dict1 = {
+            "345723": 
+                { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025", 
+                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at  Chase on Jan 15,2025" },
+            "98765":   {"Trxn_Set_1": "John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025" } ,
+            "12345":  {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
+            "99999":  {'Trxn_Set_1': 'John deposited $5000 each in Cash into Acct #99999 at Bank of America on Jan 1, 2025.',
+                       'Trxn_Set_2': 'John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025.'},
+            "Dummy_Acct_1": 
+                    {"Trxn_Set_1": "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025",
+                     "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025 " ,
+                     "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025"  ,
+                     "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." 
+                        }
         }
 
         
-        self.summary_prompt = self.agent_config.get("summary_prompt") 
+        cls.summary_prompt = cls.agent_config.get("summary_prompt") 
         logging.info("Step 6: Read summary prompt for narrative Extraction Agent")         
 
-        self.results_dict1 = create_two_agent_chat(self.sar_agent,self.narrative_extraction_agent,self.message1,self.summary_prompt)
-       
+        results = create_two_agent_chat(cls.sar_agent,cls.narrative_extraction_agent,cls.message1,cls.summary_prompt)
+        cls.results_dict1 = results["Narratives"]
 
+    def test_output_format(self):
+        """
+        Validate the narrative extraction agent is outputting results in the right format
+        """
+        transaction_dict = self.results_dict1
+
+        # The top-level keys we expect
+        expected_keys = ["345723", "98765", "12345", "99999", "Dummy_Acct_1"]
+
+        # Check that each expected key is present
+        for key in expected_keys:
+            self.assertIn(key, transaction_dict, f"Missing expected key: {key}")
+
+        # Optionally, you may want to ensure the dictionary does not have extra keys
+        self.assertEqual(set(transaction_dict.keys()), set(expected_keys))
+
+        # Check each account's sub-dictionary
+        for acct, sub_dict in transaction_dict.items():
+            self.assertIsInstance(
+                sub_dict, dict,
+                f"The value for '{acct}' should be a dictionary, but got {type(sub_dict)}"
+            )
+            # Ensure at least one sub-key exists
+            self.assertGreater(
+                len(sub_dict), 0,
+                f"No sub-entries found under account '{acct}'"
+            )
+            # Check that each sub-key follows a pattern like 'Trxn_set_#' or 'Trxn_Set_#'
+            for sub_key in sub_dict.keys():
+                self.assertRegex(
+                    sub_key,
+                    r'^Trxn_set_\d+$|^Trxn_Set_\d+$',
+                    f"Sub-key '{sub_key}' under '{acct}' does not match expected pattern."
+                )
         
 
-    def test_scenario_1_extraction_approx(self):
+    def test_narrative_match_approx(self):
         """
         Validate scenario 1 using approximate lexical match for the narrative text.
         The similarity ratio should exceed our threshold (e.g. 0.80).
         """
+
+
         # 1) Check that the same set of account IDs exist in both dicts
         self.assertEqual(
             set(self.results_dict1.keys()),
@@ -313,27 +342,42 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
             "Mismatch in the set of account IDs extracted."
         )
 
-        # 2) Compare the narratives for each account using approximate matching
+         # 2) Compare narratives account by account, sub-key by sub-key
         threshold = 0.80
-        for acct_id, expected_text in self.expected_dict1.items():
+        for acct_id, expected_sub_dict in self.expected_dict1.items():
             self.assertIn(
                 acct_id,
                 self.results_dict1,
-                f"Account {acct_id} is missing in the agent's output."
+                f"Account '{acct_id}' is missing in the agent's output."
             )
+            actual_sub_dict = self.results_dict1[acct_id]
 
-            actual_text = self.results_dict1[acct_id].strip()
-            ratio = approximate_match_ratio(expected_text.strip(), actual_text)
-            
-            self.assertTrue(
-                ratio >= threshold,
+            # 2a) Ensure the set of transaction keys matches
+            self.assertEqual(
+                set(actual_sub_dict.keys()),
+                set(expected_sub_dict.keys()),
                 (
-                    f"Narrative for account {acct_id} does not meet the similarity "
-                    f"threshold of {threshold}. Got ratio={ratio:.2f}.\n"
-                    f"Expected: {expected_text}\n"
-                    f"Actual:   {actual_text}"
+                    f"Mismatch in the sub-key set for account '{acct_id}'.\n"
+                    f"Expected: {set(expected_sub_dict.keys())}\n"
+                    f"Got:      {set(actual_sub_dict.keys())}"
                 )
             )
+
+            # 2b) Compare each transaction narrative using approximate matching
+            for sub_key, expected_text in expected_sub_dict.items():
+                actual_text = actual_sub_dict[sub_key].strip()
+                ratio = approximate_match_ratio(expected_text.strip(), actual_text)
+                
+                self.assertTrue(
+                    ratio >= threshold,
+                    (
+                        f"Transaction '{sub_key}' in account '{acct_id}' "
+                        f"does not meet the similarity threshold of {threshold:.2f}.\n"
+                        f"Got ratio={ratio:.2f}.\n"
+                        f"Expected: {expected_text}\n"
+                        f"Actual:   {actual_text}"
+                    )
+                )
 
 
 class Test_Transaction_Generation_Agent(unittest.TestCase):
