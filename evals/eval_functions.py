@@ -52,7 +52,7 @@ def evaluate_mappings(pred_mapping: Dict[str, str], gold_mapping: Dict[str, str]
     return {"precision": precision, "recall": recall, "f1": f1}
 
 
-def evaluate_dict_keys(narratives: Dict[str, float], gold_narratives: Dict[str, float]) -> Dict[str, float]:
+def evaluate_dict_keys(narratives: Dict[str, str], gold_narratives: Dict[str, str]) -> Dict[str, float]:
     """
     Evaluates whether the keys of two dictionaries match
     Returns precision, recall, and F1-score.
@@ -89,6 +89,33 @@ def evaluate_nested_mapping(pred_dict, gold_dict):
         "f1": f1
     }
 
+def count_transaction_sets(transactions_dict):
+    """
+    Counts the total number of transaction sets in the provided dictionary.
+    If an account's value is a dictionary, we count each 'Trxn_Set_*' entry.
+    If an account's value is a single string, we treat it as one transaction set.
+    """
+    total_count = 0
+    for _, value in transactions_dict.items():
+        if isinstance(value, dict):
+            # Count how many transaction set entries there are
+            total_count += len(value)
+        else:
+            # It's a single narrative string for that account
+            total_count += 1
+    return total_count
+
+def evaluate_transaction_sets(pred_dict,gold_dict):
+    """
+    Evaluates whether the right number of trxn sets have been extracted
+    """
+    observed = count_transaction_sets(pred_dict)
+    expected = count_transaction_sets(gold_dict)
+
+    return {
+        "N_obsered_trxn_sets": observed,
+        "N_expected_trxn_sets":expected
+    }
 # ============================
 # Main Evaluation Loop
 # ============================
@@ -128,9 +155,19 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
                             },
                      'FI_to_Acct_to_Cust': {'Dummy_Bank_1': {'12345-6789': 'CUST_001','23456-7891': 'CUST_002'},
                                             'Bank of Anan': {'3489728': 'CUST_003'}},
-                      'Narrative': {'12345-6789': ' Between January 2 and March 17, 2003, 13 deposits totaling approximately $50,000 were posted to the account, consisting of cash, checks, and money orders, with amounts ranging from $1,500 to $9,500. Third-party out of state checks and money orders were also deposited. Between January 17, 2003, and March 21, 2003, John Doe originated nine wires totaling $225,000 to the Bank of Anan in Dubai, UAE, to benefit Kulkutta Building Supply Company, account #3489728.',
-                                    '23456-7891': ' Between January 2 and March 17, 2003, 33 deposits totaling approximately $275,000 were made to the account, consisting of cash, checks, and money orders. Individual amounts ranged between $4,446 and $9,729; 22 of 33 deposits were between $9,150 and $9,980. In nine instances where cash deposits were made to both accounts on the same day, combined deposits exceeded $10,000. Currency transaction reports were filed with the IRS for daily transactions exceeding $10,000. The bank identified Acme, Inc. as providing remittance services to the Middle East, including Iran, without being a licensed money wire transfer business.',
-                                    '3489728': "Nine wire transfers totaling $225,000 were sent from John Doe's personal account #12345-6789 at Dummy_Bank_1 to Kulkutta Building Supply Company, account #3489728 at the Bank of Anan in Dubai, UAE, between January 17, 2003, and March 21, 2003."}
+                      'Narrative':  {
+                            '12345-6789': 
+                                {"Trxn_Set_1": "John Doe opened a personal checking account, #12345-6789, in March of 1994. Between January 2 and March 17, 2003, 13 deposits totaling approximately $50,000 were posted to the account, consisting of cash, checks, and money orders, with amounts ranging from $1,500 to $9,500. Third-party out of state checks and money orders were also deposited.",
+                                
+                                "Trxn_Set_2": "Between January 17, 2003, and March 21, 2003, John Doe originated nine wires totaling $225,000 to the Bank of Anan in Dubai, UAE, to benefit Kulkutta Building Supply Company, account #3489728. The wire transfers were always  conducted at the end of each week in the amount of $25,000."},
+                                        
+                            '23456-7891':
+                                {"Trxn_Set_1":"A business checking account, #23456-7891, for Acme, Inc. was opened in January of 1998. Between January 2 and March 17, 2003, 33 deposits totaling approximately $275,000 were made to the account, consisting of cash, checks, and money orders. Individual amounts ranged between $4,446 and $9,729; 22 of 33 deposits were between $9,150 and $9,980. In nine instances where cash deposits were made to both accounts on the same day, combined deposits exceeded $10,000. Currency transaction reports were filed with the IRS for daily transactions exceeding $10,000. The bank identified Acme, Inc. as providing remittance services to the Middle East, including Iran, without being a licensed money wire transfer business."},
+                                        
+                            '3489728': 
+                                {"Trxn_Set_1":"Nine wire transfers totaling $225,000 were sent from John Doe's personal account #12345-6789 at Dummy_Bank_1 to Kulkutta Building Supply Company, account #3489728 at the Bank of Anan in Dubai, UAE, between January 17, 2003, and March 21, 2003."
+                                    }
+                       }
 
                     }
 
@@ -162,6 +199,9 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
         #Evaluate if narratives have been extracted for expected accounts
         accts_w_narrative_metrics = evaluate_dict_keys(pred_output.get("Narrative",{}), sar.gold_narrative)
 
+
+        #Evaluate if expectd number of trxn sets have been extracted
+        trxn_set_metrics = evaluate_transaction_sets(pred_output.get("Narrative",{}), sar.gold_narrative)
         
          # ========== Build One Row of Results for This SAR ==========
         row_data = {
@@ -200,13 +240,16 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
         row_data["accts_in_narrative_precision"] = accts_w_narrative_metrics["precision"]
         row_data["accts_in_narrative_recall"] = accts_w_narrative_metrics["recall"]
         row_data["accts_in_narrative_f1"] = accts_w_narrative_metrics["f1"]
+        row_data["N_observed_trxn_sets"] = trxn_set_metrics["observed"]
+        row_data["N_expected_trxn_sets"] = trxn_set_metrics["expected"]
+
 
         # Append the row to our list
         metric_rows.append(row_data)
 
      # 6) Evaluate Narrative Similarity
-        gold_narr = sar.gold_narrative  # {acct -> gold text}
-        pred_narr = pred_output.get("Narrative", {})  # {acct -> predicted text}
+        gold_narr = "".join(sar.gold_narrative.values())  # {acct -> gold text}
+        pred_narr = "".join(pred_output.get("Narrative", {}).values())  # {acct -> predicted text}
         all_accts = set(gold_narr.keys()) | set(pred_narr.keys())
 
         for acct_id in all_accts:
