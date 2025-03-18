@@ -2,7 +2,7 @@ import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any
 from agents.workflows import run_agentic_workflow1
-from utils import read_data
+from utils import read_data, generate_dynamic_output_file_name
 from evals.eval_functions import evaluate_sars
 # ============================
 # Define SARs and Gold Standards
@@ -95,7 +95,6 @@ sars = [
 
         gold_narrative =  {
              "1234567": {
-                
                     "Trxn_Set_1":"The account #1234567 for Doe's Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report. Deposits were made by John Doe on 06/03, 06/09, and 06/11 at the Happy Valley branch, while Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch",
 
                     "Trxn_Set_2": "Following these deposits, checks for $9,800 were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the cash is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."}
@@ -184,19 +183,19 @@ sars = [
             },
 
         gold_narrative =  {
-                 {
+                 
         "54321098": 
            { "Trxn_Set_1": "Between  2/2/99 through 6/20/01 ,Sky Corporation had 284 cash deposits totaling $2,710,000 at Bank of Mainland, conducted through three main branches: North Burlington, South Burlington, and West Burlington. The average deposit amount ranged from $8,720 to $16,500. ",
             "Trxn_Set_2": "Between  2/2/99 through 6/20/01, the day after deposits, 274 outgoing wire transfers totaling $2,697,000 were conducted, typically sent to Paul Lafonte at Artsy Bank, account #456781234 in Paris, France, using a remote computer terminal.The activity occured for the period  2/2/99 through 6/20/01"},
 
         "12345678": {
             "Trxn_Set_1": " Between  2/2/99 through 6/20/01, Sea Corporation had 200 cash deposits totaling $1,900,000 at Bank of Mainland, with many transactions conducted on the same day at multiple branches to potentially circumvent federal reporting requirements. ",
-            
+
             "Trxn_Set_2": "The company processed 198 outgoing wire transfers totaling $1,866,000, usually mirroring the deposits from the previous day, and also directed to Paul Lafonte at Artsy Bank, account #456781234 in Paris, France.The activity occured for the period  2/2/99 through 6/20/01"},
 
         "689472": {
             "Trxn_Set_1": "Tolinka Inc. is a customer of Bank XYZ and received 15 incoming wire transfers affecting account #12345678 at Bank of Mainland. Bank XYZ was unable to provide documentation for Tolinka Inc., and after inquiries, Tolinka Inc. closed its account without explanation.The activity occured for the period  2/2/99 through 6/20/01"}
-    }}
+    }
 
     )
 
@@ -207,10 +206,16 @@ sars = [
 if __name__ == "__main__":
     entity_metrics, narrative_metrics = evaluate_sars(sars)
 
+    output_folder = "./data/output/evals/workflow1"
      # Print the DataFrames in the console
-    print("\n=== Per-SAR Entity/Account Metrics ===")
-    print(entity_metrics.to_string(index=False))
+    print(f"\n=== Per-SAR Entity/Account Metrics available in {output_folder}===")
+    #print(entity_metrics.to_string(index=False))
 
-    print("\n=== Narrative Match Results ===")
-    print(narrative_metrics.to_string(index=False))
+    output_file = generate_dynamic_output_file_name(filename="entity_metrics",output_file_type="csv",output_folder=output_folder)
+    entity_metrics.to_csv(output_file)
+
+    print(f"\n=== Narrative Match Results available in {output_folder} ===")
+    #print(narrative_metrics.to_string(index=False))
+    output_file = generate_dynamic_output_file_name(filename="narrative_metrics",output_file_type="csv",output_folder=output_folder)
+    narrative_metrics.to_csv(output_file)
     

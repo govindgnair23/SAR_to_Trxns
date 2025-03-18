@@ -2,7 +2,7 @@
 import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any, Tuple
-from utils import flatten_nested_mapping ,approximate_match_ratio
+from utils import flatten_nested_mapping ,approximate_match_ratio, concatenate_trxn_sets
 
 # ============================
 # Evaluation Functions
@@ -113,8 +113,8 @@ def evaluate_transaction_sets(pred_dict,gold_dict):
     expected = count_transaction_sets(gold_dict)
 
     return {
-        "N_obsered_trxn_sets": observed,
-        "N_expected_trxn_sets":expected
+        "observed": observed,
+        "expected":expected
     }
 # ============================
 # Main Evaluation Loop
@@ -248,8 +248,8 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
         metric_rows.append(row_data)
 
      # 6) Evaluate Narrative Similarity
-        gold_narr = "".join(sar.gold_narrative.values())  # {acct -> gold text}
-        pred_narr = "".join(pred_output.get("Narrative", {}).values())  # {acct -> predicted text}
+        gold_narr = concatenate_trxn_sets(sar.gold_narrative)
+        pred_narr = concatenate_trxn_sets(pred_output.get("Narrative", {}))
         all_accts = set(gold_narr.keys()) | set(pred_narr.keys())
 
         for acct_id in all_accts:

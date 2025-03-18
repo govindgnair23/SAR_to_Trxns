@@ -249,19 +249,49 @@ def flatten_nested_mapping(nested_dict):
     return flat_set
 
 
-def generate_dynamic_output_file_name(filename,output_folder= "./data/output"):
-    '''
-    Function that creates a dynamic file name so that file will be written into the appropriate folder.
-    
-    '''
-    
-    # Get the base name without extension, e.g., "sar1_train" from "sar1_train.txt"
-    base_name = os.path.splitext(os.path.basename(filename))[0]
+
+def generate_dynamic_output_file_name(filename, output_file_type="json", output_folder="./data/output"):
+    """
+    Function that creates a dynamic file name so that the file
+    will be written into the appropriate folder, with an optional filetype.
+    """
+    if filename.endswith(".txt"):
+        # Get the base name without extension, e.g., "sar1_train" from "sar1_train.txt"
+        base_name = os.path.splitext(os.path.basename(filename))[0]
+    else:
+        base_name = filename
+
     # Create a timestamp in the format YYYYMMDD_HHMMSS
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # Generate the new file name
-    output_filename = f"results_{base_name}_{timestamp}.json"
+
+    # Generate the new file name using the provided filetype
+    output_filename = f"results_{base_name}_{timestamp}.{output_file_type}"
+
     # Create the full output file path
     output_file_path = os.path.join(output_folder, output_filename)
 
     return output_file_path
+
+def concatenate_trxn_sets(gold_narrative):
+    """
+    Takes a dictionary of the form:
+    {
+        'account_id': {
+            'Trxn_Set_1': 'narrative 1',
+            'Trxn_Set_2': 'narrative 2',
+            ...
+        },
+        ...
+    }
+    and returns a dictionary:
+    {
+        'account_id': 'narrative 1 <space> narrative 2 <space> ...',
+        ...
+    }
+    """
+    new_dict = {}
+    for account_id, trxn_sets in gold_narrative.items():
+        # Concatenate all transaction set narratives into one string
+        combined_narratives = " ".join(trxn_sets.values())
+        new_dict[account_id] = combined_narratives
+    return new_dict
