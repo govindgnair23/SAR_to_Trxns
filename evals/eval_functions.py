@@ -2,7 +2,7 @@
 import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any, Tuple
-from utils import flatten_nested_mapping ,approximate_match_ratio, concatenate_trxn_sets
+from utils import flatten_nested_mapping,approximate_match_ratio,concatenate_trxn_sets
 
 # ============================
 # Evaluation Functions
@@ -282,155 +282,137 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 
 
-def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str, Any]]]) -> Dict[str, Dict[str, Dict[str, Any]]]:
+def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str, Any]]]) -> pd.DataFrame:
     """
     Compare actual transactions in `df` with expected transaction sets in `expected_trxns`.
-    For each transaction set, compute:
-      - The percentage mismatch in total transaction amount (Amount_pct_diff).
-      - The percentage mismatch in the count of transactions (Count_pct_diff).
-      - A boolean flag (Date_range_ok) indicating whether all actual transactions
-        fall within the expected date range [Min_Date, Max_Date].
-      - A list of missing transaction channels (Missing_channels) that were expected but not present.
-      - A list of extra transaction channels (Extra_channels) that were present but not expected.
-      - A boolean flag (Channels_match) which is True if observed and expected channels match exactly.
-      - A boolean flag (Ind_Amt_in_range) indicating whether all transaction amounts fall
-        within the expected [Min_Ind_Amt, Max_Ind_Amt].
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame containing transaction data. Expected columns include:
-            "Originator_Account_ID"
-            "Beneficiary_Account_ID"
-            "Trxn_Date"
-            "Trxn_Amount"
-            "Trxn_Channel"
-        (plus any others needed).
-    expected_trxns : dict
-        Nested dictionary of the form:
-        {
-          "SAR_1": {
-             "Trxn_Set_1": {
-                 "Originator_Account_ID": str,
-                 "Beneficiary_Account_ID": str,
-                 "Total_Amount": float,
-                 "Trxn_Type": List[str],
-                 "Min_Date": str (yyyy-mm-dd),
-                 "Max_Date": str (yyyy-mm-dd),
-                 "Min_Ind_Amt": float,
-                 "Max_Ind_Amt": float,
-                 "N_trxns": int
-              },
-              "Trxn_Set_2": { ... },
-              ...
-          }
-        }
+    For each transaction set:
+      - Compute the percentage mismatches (Amount_pct_diff, Count_pct_diff).
+      - Identify missing/extra channels, missing/extra locations, etc.
+      - Compute the fraction of transactions whose dates and amounts fall within expected ranges.
 
     Returns
     -------
-    Dict[str, Dict[str, Dict[str, Any]]]
-        A dictionary mirroring the structure of `expected_trxns`, where each
-        Trxn_Set entry contains:
-          {
-            "Amount_pct_diff": <float>,
-            "Count_pct_diff": <float>,
-            "N_trxns_in_date_range": <float>,
-            "Missing_channels": <List[str]>,
-            "Extra_channels": <List[str]>,
-            "Channels_match": <bool>,
-            "Missing_locations": <List[str]>,
-            "Extra_locations": <List[str]>,
-            "Locations_match": <bool>,
-            "Perc_ind_amt_in_range": <float>
-          }
-        indicating the comparison results for each Trxn_Set.
+    pd.DataFrame
+        A DataFrame with comparison metrics for each (SAR ID, Trxn_Set).
     """
 
-    # Ensure Trxn_Date is a datetime type
+    # Ensure Trxn_Date is datetime
     if not pd.api.types.is_datetime64_any_dtype(df["Trxn_Date"]):
         df["Trxn_Date"] = pd.to_datetime(df["Trxn_Date"])
 
-    results = {}
+    results = []
 
     for sar_id, trx_sets in expected_trxns.items():
-        sar_results = {}
         for set_id, expected in trx_sets.items():
-            # Filter the DataFrame based on the expected Originator_Account_ID and Beneficiary_Account_ID
+            # Filter by Originator and Beneficiary
             sub_df = df[
                 (df["Originator_Account_ID"] == expected["Originator_Account_ID"]) &
                 (df["Beneficiary_Account_ID"] == expected["Beneficiary_Account_ID"])
             ]
 
+            if sub_df.empty:
+                # Nothing matches => fill defaults
+                results.append({
+                    "SAR ID": sar_id,
+                    "Trxn_Set_ID": set_id,
+                    "Amount_pct_diff": "",
+                    "Count_pct_diff": "",
+                    "N_trxns_in_date_range": "",
+                    "Missing_channels": "",
+                    "Extra_channels": "",
+                    "Channels_match": False,
+                    "Missing_locations": "",
+                    "Extra_locations": "",
+                    "Locations_match": False,
+                    "Perc_ind_amt_in_range": 0
+                })
+                continue
+
+            # -----------------------------------------------------
+            # 1. Amount & Count mismatch
+            # -----------------------------------------------------
             expected_amount = float(expected["Total_Amount"])
             expected_count = int(expected["N_trxns"])
 
-            # Convert expected date strings to actual datetime objects
-            min_date = pd.to_datetime(expected["Min_Date"])
-            max_date = pd.to_datetime(expected["Max_Date"])
+            # If 'Trxn_Amount' is entirely empty (all NaN), treat as 0
+            if sub_df["Trxn_Amount"].dropna().empty:
+                actual_amount = 0
+                actual_count = 0
+            else:
+                actual_amount = sub_df["Trxn_Amount"].sum()
+                actual_count = len(sub_df)
 
-            # Actual total amount and count
-            actual_amount = sub_df["Trxn_Amount"].sum()
-            actual_count = len(sub_df)
-
-            # Calculate percentage mismatch in amount
+            # Amount % diff
             if expected_amount == 0:
-                # Avoid division by zero
                 amount_pct_diff = 0.0 if actual_amount == 0 else 100.0
             else:
                 amount_pct_diff = ((actual_amount - expected_amount) / expected_amount) * 100.0
 
-            # Calculate percentage mismatch in count
+            # Count % diff
             if expected_count == 0:
-                # Avoid division by zero
                 count_pct_diff = 0.0 if actual_count == 0 else 100.0
             else:
                 count_pct_diff = ((actual_count - expected_count) / expected_count) * 100.0
 
-            # Check if all dates in the subset are within the expected range
-            if not sub_df.empty:
-                sub_min_date = sub_df["Trxn_Date"].min()
-                sub_max_date = sub_df["Trxn_Date"].max()
-                date_range_ok = (sub_min_date >= min_date) and (sub_max_date <= max_date)
-                n_trxns_in_date_range = date_range_ok.sum()/actual_count
-
+            # -----------------------------------------------------
+            # 2. Date Range fraction
+            # -----------------------------------------------------
+            if sub_df["Trxn_Date"].dropna().empty:
+                # If date column is empty => can't determine date coverage
+                n_trxns_in_date_range = 0
             else:
-                # No matching rows => can't confirm date range, mark as False or True as desired
-                date_range_ok = False
+                min_date = pd.to_datetime(expected["Min_Date"])
+                max_date = pd.to_datetime(expected["Max_Date"])
+                if actual_count == 0:
+                    n_trxns_in_date_range = 0
+                else:
+                    in_range_mask = (sub_df["Trxn_Date"] >= min_date) & (sub_df["Trxn_Date"] <= max_date)
+                    n_trxns_in_date_range = in_range_mask.sum() / actual_count
 
-            # Compare transaction channels
-            actual_channels = set(sub_df["Trxn_Channel"].unique()) if not sub_df.empty else set()
+            # -----------------------------------------------------
+            # 3. Channel checks
+            # -----------------------------------------------------
             expected_channels = set(expected["Trxn_Type"])
+            if sub_df["Trxn_Channel"].dropna().empty:
+                # If every row is empty for channel => no actual channels
+                actual_channels = set()
+            else:
+                actual_channels = set(sub_df["Trxn_Channel"].dropna().unique())
+
             missing_channels = list(expected_channels - actual_channels)
             extra_channels = list(actual_channels - expected_channels)
-
-            # Check if sets exactly match
             channels_match = (actual_channels == expected_channels)
 
-            # Compare Branch and ATM Locations
-            actual_locations = set(sub_df["Trxn_Branch_ATM_Location"].unique()) if not sub_df.empty else set()
-            expected_locations = set(expected["Trxn_Branch_ATM_Location"])
-            if len(expected_locations) > 0: # Locations are expected
-                missing_locations = list(expected_locations - actual_locations)
-                extra_locations = list(actual_locations - expected_locations)
+            # -----------------------------------------------------
+            # 4. Location checks
+            # -----------------------------------------------------
+            expected_locations = set(expected.get("Trxn_Branch_ATM_Location", []))
+            if sub_df["Trxn_Branch_ATM_Location"].dropna().empty:
+                actual_locations = set()
             else:
-                missing_locations = []
-                extra_locations = []
+                actual_locations = set(sub_df["Trxn_Branch_ATM_Location"].dropna().unique())
 
-            # Check if location sets exactly match
+            missing_locations = list(expected_locations - actual_locations)
+            extra_locations = list(actual_locations - expected_locations)
             locations_match = (actual_locations == expected_locations)
 
-            
-
-            # Check Individual Trxns to see how many fall  within expected [Min_Ind_Amt, Max_Ind_Amt]
-            if not sub_df.empty:
-                ind_amt_ok_bool = (sub_df["Trxn_Amount"] >= expected["Min_Ind_Amt"]) & (sub_df["Trxn_Amount"] <= expected["Max_Ind_Amt"])
-                ind_amt_in_range = ind_amt_ok_bool.sum()
-                perc_ind_amt_in_range = ind_amt_in_range/actual_count
+            # -----------------------------------------------------
+            # 5. Individual amount range
+            # -----------------------------------------------------
+            if sub_df["Trxn_Amount"].dropna().empty or actual_count == 0:
+                perc_ind_amt_in_range = 0
             else:
-                # No rows => not in range by default (or True if you want to treat "no rows" as trivially inside range)
-                ind_amt_in_range = 0
+                min_ind_amt = expected["Min_Ind_Amt"]
+                max_ind_amt = expected["Max_Ind_Amt"]
+                in_amt_range_mask = (sub_df["Trxn_Amount"] >= min_ind_amt) & (sub_df["Trxn_Amount"] <= max_ind_amt)
+                perc_ind_amt_in_range = in_amt_range_mask.sum() / actual_count
 
-            sar_results[set_id] = {
+            # -----------------------------------------------------
+            # 6. Add results for this row
+            # -----------------------------------------------------
+            results.append({
+                "SAR ID": sar_id,
+                "Trxn_Set_ID": set_id,
                 "Amount_pct_diff": amount_pct_diff,
                 "Count_pct_diff": count_pct_diff,
                 "N_trxns_in_date_range": n_trxns_in_date_range,
@@ -441,8 +423,20 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
                 "Extra_locations": extra_locations,
                 "Locations_match": locations_match,
                 "Perc_ind_amt_in_range": perc_ind_amt_in_range
-            }
+            })
 
-        results[sar_id] = sar_results
+    # Build final DataFrame
+    results_df = pd.DataFrame(results)
 
-    return results
+    # Optional: reorder columns
+    col_order = [
+        "SAR ID", "Trxn_Set_ID", "Amount_pct_diff", "Count_pct_diff",
+        "N_trxns_in_date_range", "Missing_channels", "Extra_channels",
+        "Channels_match", "Missing_locations", "Extra_locations",
+        "Locations_match", "Perc_ind_amt_in_range"
+    ]
+    col_order = [c for c in col_order if c in results_df.columns]
+    results_df = results_df[col_order]
+
+    return results_df
+
