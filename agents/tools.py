@@ -5,6 +5,12 @@ import numpy as np
 from datetime import datetime, timedelta
 import random
 
+###To Do###
+# Expect one of
+# a) min_ind_amount, max_ind_amount and N_trxns
+# b) Total Amount and N_trxns
+# c) Total Amount and min_ind_amount and max_ind_amount
+
 Channels_allowed = Literal["Wire","Cash","Check"]
 def generate_transactions(
         Originator_Name:Annotated[str, "Entity or Customer originating the transactions"],
