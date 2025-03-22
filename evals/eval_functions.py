@@ -3,6 +3,9 @@ import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any, Tuple
 from utils import flatten_nested_mapping,approximate_match_ratio,concatenate_trxn_sets
+import logging
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # ============================
 # Evaluation Functions
@@ -120,97 +123,100 @@ def evaluate_transaction_sets(pred_dict,gold_dict):
 # Main Evaluation Loop
 # ============================
 
-def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+
+def compare_sar_details(
+    ground_truth_sars: List,
+    predicted_sars: List
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Evaluates a list of SARs and returns a DataFrame with evaluation metrics.
+    Evaluates a list of ground truth SARs and predicted SARs (already generated externally),
+    returning two DataFrames:
+
+    1) A metrics DataFrame that aggregates precision, recall, F1, etc.
+    2) A narrative match ratio DataFrame.
+
+    :param ground_truth_sars: A list of ground-truth SAR objects, each containing
+                              gold-standard fields, such as:
+                              gold_entities, gold_account_ids, gold_acct_to_fi,
+                              gold_acct_to_cust, gold_fi_to_acct_to_cust, gold_narrative, etc.
+    :param predicted_sars: A list of predicted SAR dictionaries (or objects), each containing
+                           predicted fields, such as:
+                           "Entities", "Account_IDs", "Acct_to_FI", "Acct_to_Cust",
+                           "FI_to_Acct_to_Cust", "Narrative", etc.
+    :return: (metrics_df, narratives_df)
+             metrics_df: DataFrame with one row per SAR and a final "Average" row,
+                         showing various precision/recall/f1 metrics, plus transaction set counts.
+             narratives_df: DataFrame with account-level narrative match ratios.
     """
 
-     # We'll collect the results in a list of dicts; 
-    # each dict will become one row in the final DataFrame.
     metric_rows = []
-
-     # This will hold rows for the narrative comparison
     narrative_rows = []
 
-    for idx, sar in enumerate(sars):
-        print(f"Evaluating SAR {idx+1}/{len(sars)}...")
-        # Run the agent workflow
-        #pred_output = run_agentic_workflow(sar.sar_narrative, config_file)
-        pred_output = {
-                    "Entities": {
-                                "Individuals": ["John Doe"],
-                                "Organizations": ["Acme, Inc.", "Kulkutta Building Supply Company"],
-                                "Financial Institutions": ["Bank of Anan"]
-                            },
-                     "Account_IDs":["123456789", "234567891", "3489728"],
-                     "Acct_to_FI" : {
-                                        "123456789": "Dummy_Bank_1",
-                                        "234567891": "Dummy_Bank_1",
-                                        "3489728": "Bank of Anan"
-                                    },
-                     "Acct_to_Cust": {
-                                "123456789": "John Doe",
-                                "234567891": "Acme, Inc.",
-                                "3489728": "Kulkutta Building Supply Company"
-                            },
-                     'FI_to_Acct_to_Cust': {'Dummy_Bank_1': {'12345-6789': 'CUST_001','23456-7891': 'CUST_002'},
-                                            'Bank of Anan': {'3489728': 'CUST_003'}},
-                      'Narrative':  {
-                            '12345-6789': 
-                                {"Trxn_Set_1": "John Doe opened a personal checking account, #12345-6789, in March of 1994. Between January 2 and March 17, 2003, 13 deposits totaling approximately $50,000 were posted to the account, consisting of cash, checks, and money orders, with amounts ranging from $1,500 to $9,500. Third-party out of state checks and money orders were also deposited.",
-                                
-                                "Trxn_Set_2": "Between January 17, 2003, and March 21, 2003, John Doe originated nine wires totaling $225,000 to the Bank of Anan in Dubai, UAE, to benefit Kulkutta Building Supply Company, account #3489728. The wire transfers were always  conducted at the end of each week in the amount of $25,000."},
-                                        
-                            '23456-7891':
-                                {"Trxn_Set_1":"A business checking account, #23456-7891, for Acme, Inc. was opened in January of 1998. Between January 2 and March 17, 2003, 33 deposits totaling approximately $275,000 were made to the account, consisting of cash, checks, and money orders. Individual amounts ranged between $4,446 and $9,729; 22 of 33 deposits were between $9,150 and $9,980. In nine instances where cash deposits were made to both accounts on the same day, combined deposits exceeded $10,000. Currency transaction reports were filed with the IRS for daily transactions exceeding $10,000. The bank identified Acme, Inc. as providing remittance services to the Middle East, including Iran, without being a licensed money wire transfer business."},
-                                        
-                            '3489728': 
-                                {"Trxn_Set_1":"Nine wire transfers totaling $225,000 were sent from John Doe's personal account #12345-6789 at Dummy_Bank_1 to Kulkutta Building Supply Company, account #3489728 at the Bank of Anan in Dubai, UAE, between January 17, 2003, and March 21, 2003."
-                                    }
-                       }
+    for idx, (gt_sar, pred_sar) in enumerate(zip(ground_truth_sars, predicted_sars)):
+        logging(f"Evaluating SAR {idx+1}/{len(ground_truth_sars)}...")
 
-                    }
+        # Instead of generating predictions here (e.g., run_agentic_workflow),
+        # we assume pred_sar already contains all relevant predicted data.
+        # For example:
+        # pred_sar = {
+        #   "Entities": {...},
+        #   "Account_IDs": [...],
+        #   "Acct_to_FI": {...},
+        #   "Acct_to_Cust": {...},
+        #   "FI_to_Acct_to_Cust": {...},
+        #   "Narrative": {...}
+        # }
 
-        # Evaluate Entities
-        ent_metrics = evaluate_entities(pred_output.get("Entities", {}),
-                                        sar.gold_entities)
+        # ===== Evaluate Entities =====
+        ent_metrics = evaluate_entities(
+            pred_sar.get("Entities", {}),
+            gt_sar.gold_entities
+        )
 
-        # Evaluate Account_IDs
-        acct_metrics = evaluate_acct_ids(pred_output.get("Account_IDs", []),
-                                      sar.gold_account_ids)
-    
+        # ===== Evaluate Account_IDs =====
+        acct_metrics = evaluate_acct_ids(
+            pred_sar.get("Account_IDs", []),
+            gt_sar.gold_account_ids
+        )
 
-        # Evaluate Acct_to_FI
-        acct_fi_metrics = evaluate_mappings(pred_output.get("Acct_to_FI", {}),
-                                           sar.gold_acct_to_fi)
+        # ===== Evaluate Acct_to_FI =====
+        acct_fi_metrics = evaluate_mappings(
+            pred_sar.get("Acct_to_FI", {}),
+            gt_sar.gold_acct_to_fi
+        )
 
+        # ===== Evaluate Acct_to_Cust =====
+        acct_cust_metrics = evaluate_mappings(
+            pred_sar.get("Acct_to_Cust", {}),
+            gt_sar.gold_acct_to_cust
+        )
 
-        # Evaluate Acct_to_Cust
-        acct_cust_metrics = evaluate_mappings(pred_output.get("Acct_to_Cust", {}),
-                                             sar.gold_acct_to_cust)
+        # ===== Evaluate FI_to_Acct_to_Cust =====
+        fi_acct_cust_metrics = evaluate_nested_mapping(
+            pred_sar.get("FI_to_Acct_to_Cust", {}),
+            gt_sar.gold_fi_to_acct_to_cust
+        )
 
+        # ===== Check that narratives are extracted for expected accounts =====
+        accts_w_narrative_metrics = evaluate_dict_keys(
+            pred_sar.get("Narrative", {}),
+            gt_sar.gold_narrative
+        )
 
-        # Evaluate Fi to Acct to CUST ID
-        print(pred_output.get("FI_to_Acct_to_Cust",{}))
-        print("\n")
-        print(sar.gold_fi_to_acct_to_cust)
-        fi_acct_cust_metrics = evaluate_nested_mapping(pred_output.get("FI_to_Acct_to_Cust",{}), sar.gold_fi_to_acct_to_cust)
+        # ===== Evaluate expected number of transaction sets =====
+        trxn_set_metrics = evaluate_transaction_sets(
+            pred_sar.get("Narrative", {}),
+            gt_sar.gold_narrative
+        )
 
-        #Evaluate if narratives have been extracted for expected accounts
-        accts_w_narrative_metrics = evaluate_dict_keys(pred_output.get("Narrative",{}), sar.gold_narrative)
-
-
-        #Evaluate if expectd number of trxn sets have been extracted
-        trxn_set_metrics = evaluate_transaction_sets(pred_output.get("Narrative",{}), sar.gold_narrative)
-        
-         # ========== Build One Row of Results for This SAR ==========
+        # ----- Build one row of results for this SAR -----
         row_data = {
             "SAR_index": idx + 1  # Human-friendly numbering
         }
 
-        # Entities metrics: we may have multiple types, e.g. "Individuals", "Organizations", etc.
+        # Entities metrics: possibly multiple entity types
         for entity_type, metrics_dict in ent_metrics.items():
-            # Replace spaces in entity_type to avoid awkward column names
             safe_type = entity_type.replace(" ", "_")
             row_data[f"{safe_type}_precision"] = metrics_dict["precision"]
             row_data[f"{safe_type}_recall"] = metrics_dict["recall"]
@@ -218,38 +224,37 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         # Account_IDs metrics
         row_data["Account_IDs_precision"] = acct_metrics["precision"]
-        row_data["Account_IDs_recall"] = acct_metrics["recall"]
-        row_data["Account_IDs_f1"] = acct_metrics["f1"]
+        row_data["Account_IDs_recall"]   = acct_metrics["recall"]
+        row_data["Account_IDs_f1"]       = acct_metrics["f1"]
 
         # FI_to_Acct metrics
         row_data["FI_to_Acct_precision"] = acct_fi_metrics["precision"]
-        row_data["FI_to_Acct_recall"] = acct_fi_metrics["recall"]
-        row_data["FI_to_Acct_f1"] = acct_fi_metrics["f1"]
+        row_data["FI_to_Acct_recall"]   = acct_fi_metrics["recall"]
+        row_data["FI_to_Acct_f1"]       = acct_fi_metrics["f1"]
 
         # Acct_to_Cust metrics
         row_data["Acct_to_Cust_precision"] = acct_cust_metrics["precision"]
-        row_data["Acct_to_Cust_recall"] = acct_cust_metrics["recall"]
-        row_data["Acct_to_Cust_f1"] = acct_cust_metrics["f1"]
+        row_data["Acct_to_Cust_recall"]   = acct_cust_metrics["recall"]
+        row_data["Acct_to_Cust_f1"]       = acct_cust_metrics["f1"]
 
-        #Acct_to_Cust_ID metrics
+        # FI_Acct_Cust_ID metrics
         row_data["FI_Acct_Cust_ID_precision"] = fi_acct_cust_metrics["precision"]
-        row_data["FI_Acct_Cust_ID_recall"] = fi_acct_cust_metrics["recall"]
-        row_data["FI_Acct_Cust_ID_f1"] = fi_acct_cust_metrics["f1"]
+        row_data["FI_Acct_Cust_ID_recall"]   = fi_acct_cust_metrics["recall"]
+        row_data["FI_Acct_Cust_ID_f1"]       = fi_acct_cust_metrics["f1"]
 
-        #Narrative Key Metrics
+        # Narrative Key Metrics
         row_data["accts_in_narrative_precision"] = accts_w_narrative_metrics["precision"]
-        row_data["accts_in_narrative_recall"] = accts_w_narrative_metrics["recall"]
-        row_data["accts_in_narrative_f1"] = accts_w_narrative_metrics["f1"]
+        row_data["accts_in_narrative_recall"]   = accts_w_narrative_metrics["recall"]
+        row_data["accts_in_narrative_f1"]       = accts_w_narrative_metrics["f1"]
+
         row_data["N_observed_trxn_sets"] = trxn_set_metrics["observed"]
         row_data["N_expected_trxn_sets"] = trxn_set_metrics["expected"]
 
-
-        # Append the row to our list
         metric_rows.append(row_data)
 
-     # 6) Evaluate Narrative Similarity
-        gold_narr = concatenate_trxn_sets(sar.gold_narrative)
-        pred_narr = concatenate_trxn_sets(pred_output.get("Narrative", {}))
+        # ----- Evaluate narrative similarity -----
+        gold_narr = concatenate_trxn_sets(gt_sar.gold_narrative)
+        pred_narr = concatenate_trxn_sets(pred_sar.get("Narrative", {}))
         all_accts = set(gold_narr.keys()) | set(pred_narr.keys())
 
         for acct_id in all_accts:
@@ -257,28 +262,26 @@ def evaluate_sars(sars: List) -> Tuple[pd.DataFrame, pd.DataFrame]:
             p_text = pred_narr.get(acct_id, "")
             ratio = approximate_match_ratio(g_text, p_text)
             narrative_rows.append({
-                "SAR_index": idx,
+                "SAR_index": (idx + 1),
                 "Account_ID": acct_id,
                 "narrative_match_ratio": ratio
             })
 
-
-    # 6. Convert the per-SAR results into a DataFrame
+    # ----- Convert collected metrics into DataFrames -----
     metrics_df = pd.DataFrame(metric_rows)
 
-    # 7. Add a final row with the average of all numeric columns
+    # Optionally compute the average row if we have numeric columns
     if not metrics_df.empty:
         avg_row = metrics_df.mean(numeric_only=True).to_dict()
         avg_row["SAR_index"] = "Average"
-        
-        # Create a new one-row DataFrame and concatenate
         avg_row_df = pd.DataFrame([avg_row])
         metrics_df = pd.concat([metrics_df, avg_row_df], ignore_index=True)
 
-    # 8) Convert the narrative match results to a separate DataFrame
     narratives_df = pd.DataFrame(narrative_rows)
-
     return metrics_df, narratives_df
+
+
+
 
 
 
