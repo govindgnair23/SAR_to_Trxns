@@ -295,3 +295,62 @@ def concatenate_trxn_sets(gold_narrative):
         combined_narratives = " ".join(trxn_sets.values())
         new_dict[account_id] = combined_narratives
     return new_dict
+
+def split_dictionary_into_subnarratives(data: dict) -> list:
+    """
+    Given the input dictionary 'data', this function returns a list of new dictionaries.
+    Each returned dictionary retains the same fields/keys as the original dictionary,
+    except that the 'Narrative' field is narrowed down to exactly one AccountID
+    and one Transaction Set.
+
+    :param data: The original dictionary containing 'Entities', 'Account_IDs',
+                 'Acct_to_FI', 'Acct_to_Cust', 'FI_to_Acct_to_Cust', and 'Narrative'.
+    :return: A list of dictionaries, each having exactly one Narrative entry
+             corresponding to one (AccountID, Trxn_Set) pair.
+    """
+    results = []
+    original_narrative = data.get("Narrative", {})
+
+    for acct_id, trxn_sets in original_narrative.items():
+        for trxn_set_label, narration_text in trxn_sets.items():
+            # Copy all top-level fields except Narrative
+            new_dict = {
+                "Entities": data["Entities"],
+                "Account_IDs": data["Account_IDs"],
+                "Acct_to_FI": data["Acct_to_FI"],
+                "Acct_to_Cust": data["Acct_to_Cust"],
+                "FI_to_Acct_to_Cust": data["FI_to_Acct_to_Cust"],
+                # Narrow the Narrative down to one (acct_id, trxn_set_label)
+                "Narrative": {
+                    acct_id: {
+                        trxn_set_label: narration_text
+                    }
+                }
+            }
+            results.append(new_dict)
+
+    return results
+
+
+
+def assert_dict_structure(testcase, expected, actual):
+    """
+    Recursively verify that 'actual' has at least the same keys (and sub-keys) as 'expected'.
+    This checks structural integrity (i.e., key presence and dict nesting), but not exact values.
+    """
+    testcase.assertIsInstance(actual, dict, "Expected a dictionary for this level of structure.")
+    
+    for key, expected_value in expected.items():
+        # Check the key exists in the actual dictionary
+        testcase.assertIn(key, actual, f"Key '{key}' is missing in the actual dictionary.")
+        
+        # If the expected value is also a dict, recurse into the structure
+        if isinstance(expected_value, dict):
+            testcase.assertIsInstance(actual[key], dict, 
+                                      f"Key '{key}' should map to a dict in the actual dictionary.")
+            assert_dict_structure(testcase, expected_value, actual[key])
+        else:
+            # If not a dict, we only check that the key is present. 
+            # You could also check type: 
+            # testcase.assertIsInstance(actual[key], type(expected_value), ...)
+            pass

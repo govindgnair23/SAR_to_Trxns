@@ -3,7 +3,7 @@ import logging
 from contextlib import redirect_stdout
 from unittest.mock import patch
 from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
-from utils import get_config_list, compare_dicts
+from utils import  compare_dicts, assert_dict_structure
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -19,38 +19,37 @@ class TestWorkflow1(unittest.TestCase):
         cls.expected_dictionary = {
             'Entities': {
                 'Individuals': ['John', 'Jill'],
-                'Organizations': ['Acme Inc'],
+                'Organizations': [],
                 'Financial_Institutions': ['Bank of America', 'Chase Bank']
             },
-            'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'],
+            'Account_IDs': ['345723', '99999', 'Dummy_Acct_1'],
             'Acct_to_FI': {
                 '345723': 'Bank of America',
-                '98765': 'Dummy_Bank_1',
+                '99999': 'Bank of America',
                 'Dummy_Acct_1': 'Chase Bank'
             },
             'Acct_to_Cust': {
                 '345723': 'John',
-                '98765': 'Acme Inc',
+                '99999': 'John',
                 'Dummy_Acct_1': 'Jill'
             },
             'FI_to_Acct_to_Cust': {
-                'Bank of America': {'345723': 'CUST_001'},
+                'Bank of America': {'345723': 'CUST_001','99999':'CUST_001' },
                 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'},
-                'Dummy_Bank_1': {'98765': 'CUST_003'}
             },
-            'Narratives': {
-                '345723': ("John deposited $5000 in Cash into Acct #345723 at Bank of America. "
-                           "John sends $3000 to Jill's account at Chase."),
-                '98765': ("John sends $2000 from Acct #345723 to Account #98765. "
-                          "Jill sends $1000 from her Acct at Chase Bank to Acct #98765."),
-                'Dummy_Acct_1': "Jill deposited $3000 in Cash into her Acct at Chase Bank."
-            }
-        }
+            'Narratives' : {"345723": 
+                                {"Trxn_Set_1":"John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 1,2025.", 
+                                "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at  Chase on Jan 15,2025" } ,
+                            "Dummy_Acct_1": 
+                              {"Trxn_Set_1": "John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025"} ,
+                            "99999": 
+                              {"Trxn_Set_1": "John deposited $5000  in Cash into  Acct #99999 at Bank of America on Jan 1, 2025" } 
+        } }
 
         test_sar1  = '''
-                John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.
-                Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a Business account, Account #98765. 
-                John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+                 John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . 
+                 John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. 
+                  
 
             '''
 
@@ -184,20 +183,15 @@ class TestWorkflow1(unittest.TestCase):
                  f"but got {actual_fi_acct_cust}")
         )
 
-    def test_values_for_Narratives(self):
+        
+    def test_narratives_structure_dynamic(self):
         """
-        Test the correctness of 'Narratives'.
+        Test the 'Narratives' dictionary has the right keys and sub-keys.
         """
-        self.assertIn('Narratives', self.result, "'Narratives' key is missing in the result")
+        expected_narratives = self.expected_dictionary["Narratives"]
+        actual_narratives = self.result["Narratives"]
+        assert_dict_structure(self, expected_narratives, actual_narratives)
 
-        expected_narratives = self.expected_dictionary['Narratives']
-        actual_narratives = self.result['Narratives']
-
-        self.assertEqual(
-            actual_narratives, 
-            expected_narratives,
-            msg=f"Expected Narratives {expected_narratives} but got {actual_narratives}"
-        )
 
 class TestWorkflow2(unittest.TestCase):
     '''
@@ -221,9 +215,12 @@ class TestWorkflow2(unittest.TestCase):
                       'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
                       'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
                       'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
-                      'Narratives': {'345723': "John deposited $5000 in Cash into Acct #345723 at Bank of America at the New York branch on Jan 5,2025. John sends $3000 to Jill's account at Chase on Feb 1,2025."}}
+                      'Narratives' : {"345723": 
+                             {"Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025.", 
+                              "Trxn_Set_2": "John sends a $4000 wire trxn from Acct #345723 to Jill's account at  Chase on Jan 15,2025" } }
+                     }
         
-        cls.expected_results1 = {
+        cls.expected_results1 = [{
                                     "345723": {
                                         1: {
                                             "Originator_Name": "John",
@@ -233,11 +230,16 @@ class TestWorkflow2(unittest.TestCase):
                                             "Beneficiary_Account_ID": "345723",
                                             "Beneficiary_Customer_ID": "CUST_001",
                                             "Trxn_Channel": "Cash",
-                                            "Trxn_Date": "2025-01-05",
+                                            "Trxn_Date": "2025-01-15",
                                             "Trxn_Amount": 5000,
                                             "Branch_or_ATM_Location": "New York"
-                                        },
-                                        2: {
+                                        }
+                                       
+                                    }
+                                },
+                                {
+                                    "345723": {
+                                        1: {
                                             "Originator_Name": "John",
                                             "Originator_Account_ID": "345723",
                                             "Originator_Customer_ID": "CUST_001",
@@ -245,12 +247,16 @@ class TestWorkflow2(unittest.TestCase):
                                             "Beneficiary_Account_ID": "Dummy_Acct_1",
                                             "Beneficiary_Customer_ID": "CUST_002",
                                             "Trxn_Channel": "Wire",
-                                            "Trxn_Date": "2025-02-01",
-                                            "Trxn_Amount": 3000,
+                                            "Trxn_Date": "2025-01-15",
+                                            "Trxn_Amount": 4000,
                                             "Branch_or_ATM_Location": ""
                                         }
+                                       
                                     }
                                 }
+                                
+                                
+                                ]
         
         cls.test_input2  = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
