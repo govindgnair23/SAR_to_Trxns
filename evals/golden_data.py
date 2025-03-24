@@ -38,7 +38,7 @@ class SAR:
             'Narrative': self.gold_narrative
         }
 
-        return json.dumps(sar_extract, indent = 2)
+        return sar_extract
 
 
 config_file = 'configs/agents_config.yaml' 
