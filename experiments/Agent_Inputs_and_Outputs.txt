@@ -1,0 +1,73 @@
+
+# Entity Extraction
+
+## Input
+
+SAR
+
+## Output
+{ 
+    'Entities' : 
+    {"Individuals": ["John", "Jill"],
+     "Organizations":["Acme Inc"],
+     "Financial Institution":["Chase"," Bank of America", "Citibank"]},
+     "Account IDs": ["345723","98765","Dummy_12345"],
+     "FIs_to_Accts" : {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":["98765"]},
+     "Customers_to_Accts" : {"Bank of America":["345723"],"Chase Bank":["Dummy_12345"],"Citibank":["98765"]}
+
+}
+
+
+# Entity Resolution
+
+## Input
+
+"Account IDs": ["345723","98765","Dummy_12345"],
+"Customers_to_Accts" : {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":["98765"]},
+"FIs_to_Accts " : {"Bank of America":["345723"],"Chase Bank":["Dummy_12345"],"Citibank":["98765"]}
+SAR
+
+## Output
+
+{<Financial Institution 1>: { <CUST_ID_1>: [<ACCT_1>,<ACCT_2>], <CUST_ID_2>:[<ACCT_3>]},
+                              <Financial Institution 2>: { <CUST_ID_3>: [<ACCT_4>,<ACCT_5>], <CUST_ID_4>:[<ACCT_6>]} } 
+
+
+# Narrative Extraction
+
+## Inputs
+"Customers_to_Accts": {
+    "John Doe": [
+      "12345678910"
+    ],
+    "Jennifer Doe": [
+      "981012345"
+    ]
+  },
+
+ "Account IDs": [
+    "12345678910",
+    "981012345"
+  ]
+
+SAR 
+
+## Outputs
+
+{"345723": "John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.John sends $2000 from Acct #345723 to Account #98765",
+      "98765": "John sends $2000 from Acct #345723 to Account #98765",
+      "Dummy_12345": "John sends $3000 to Jill's account at Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank." 
+    }
+
+# Trxn Extraction
+
+## Inputs
+
+  Narrative = {"345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024.
+                  John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024 . John  wrote a check to Jill from Acct #345723 on Jan 8,2024 for $1,000"}
+
+                  Customers_to_Accts = {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":"98765"}
+                  FIs_to_Accts = {"Bank of America":["345723","98765"],"Chase Bank":["Dummy_12345"]}
+                  Bank_to_Cust_to_Acct = {"Bank of America": {"CUST_001": ["345723"], "CUST_002":["98765"]}, "Chase Bank": {"CUST_003":["Dummy_12345"]}}
+
+

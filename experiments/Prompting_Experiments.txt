@@ -1,0 +1,402 @@
+# Entities, Account IDs, Custoemr IDs
+## GPT 3.5
+https://chatgpt.com/share/16a4a5ad-9c7d-46a9-92f8-91105867ce90
+## GPT 4
+https://chatgpt.com/share/e4c3f128-e526-4872-b6aa-730dd4afe2ea
+
+
+#########################Entity Extraction###########################
+
+From the SAR narrative given below 
+
+1) Extract the main entities described. Entities could be individual or organizations. Identify only entities that are directly involved in transactions.  
+For example:
+ - If John sends money to Jill's account at Bank of America. Only identify John  and Jill as entities.
+ - If John sends money to an account at Chase Bank. Then identify John and Chase as entities
+
+2) Extract the account IDs described. Account IDs could be numeric or alphanumeric.
+3) Map the extracted account IDs to the entities. If an account ID is missing, then indicate this as "Missing". Return this in the form of a dictionary, E.g. {"Entity_Name": "Account_ID"}
+4) Now create customer IDs. Each Account ID should be mapped to a customer ID. 
+If multiple account IDs are ultimately owned by the same individual or organization, they should be mapped to the same customer ID. You can return this mapping as a JSON E.g. { "Customer_ID" : "Account_ID" }.A customer ID should be of the form CUST001, CUST002 and so on. 
+For example: 
+- John has a personal account 1234 and a business account 4567. Then 1234 and 4567 should be mapped to the same customer ID.
+
+########################## Entity Extraction - v2################################
+
+From the SAR narrative given below
+
+1) Extract the main entities described. Entities could be individual or organizations or Financial Instituions. Identify only entities that are directly involved in transactions.  
+For example:
+ - If John sends money to Jill's account at Bank of America. Only identify John  and Jill as entities.
+ - If John sends money to an account at Chase Bank and the beneficary is not identified then identify John and Chase as entities
+
+2) Extract the account IDs described. Account IDs could be numeric or alphanumeric.
+
+3) Map the extracted account IDs to the entities. If an account ID is missing, then indicate this as "Missing". Return this in the form of a dictionary, E.g. {"Entity_Name": "Account_ID"}
+
+
+############################## Entity Extraction - v3################################
+
+From the SAR narrative given below and identified by delimiters ####.
+
+1) Extract the main entities described. Entities could be individual or Organizations or Financial Institutions 
+
+
+2) Extract the account IDs described. Account IDs could be numeric or alphanumeric. If an Account ID is missing, create a dummy account ID with the prefix "Dummy_".
+
+
+3) Map the extracted account IDs to Individuals or Organizations. Return this in the form of a dictionary, E.g. {"Entity_Name": ["Account_ID"]}
+
+
+4) Map the extacted account IDs to Financia; institutions where the account is held. Return this in the form of a dictionary, E.g. {"Financial Instituion": ["Account_ID"]}
+
+ An example is given below.
+
+Narrative 1:
+
+John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at  Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank.
+John and Jill own a business Acme Inc that has a  Business account, Account #98765 at Citibank. John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from 
+her Acct at Chase Bank to Acct #98765.
+
+1) Extract the main entities described. Identify the Individuals , Organizations and Financial Instituions mentioned. Individuals are John and Jill. Oragnizations are Acme Inc.
+Financial institutions are Bank of America, Chase Bank and Citibank.
+
+Record this in the form of a JSON
+
+{"Entities": {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institution":["Chase"," Bank of America", "Citibank]}}
+
+2) Extract the account IDs described. Accounts mentioned in the narrative are #345723,#98765. There is also an account at Chase Bank that is missing. Assign a dummy account ID ("Dummy_12345")
+to this account.
+
+Record this in the form of a JSON
+{"Account_IDs": ["345723","98765","Dummy_12345"]}
+
+
+3) Map the extracted Account IDs to Individuals or Organizations. Account ID #345723 belongs to John. Account ID #98765 belongs to Acme Inc.  Account ID Dummy_12345 belongs to Jill.
+Account ID #98765 belongs to Acme Inc.
+
+Return this in the form of a JSON.
+
+Entity_to_Acct_1 = {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":"98765"}
+
+
+4) Map the extracted Account IDS to Financial Instititions where they are held. Account ID #345723 is held at bank of America.   Account ID Dummy_12345 is held at Chase Bank.
+Account ID #98765 is held at Citibank. If the Financial instituion is not specified, use a dummy financial institution  "Bank".
+
+Return this in the form of a JSON.
+
+Entity_to_Acct_2 = {"Bank of America":["345723"],"Chase Bank":["Dummy_12345"],"Citibank":"98765"}
+
+
+
+
+###################################### Entity Resolution and Customer IDs - v2###########################################
+
+From the following four pieces of information:
+
+1) List of Account IDs
+2) The mapping between Individuals and Organizations to Account IDs given by the dictionary Entity_to_Acct_1
+3) The mapping between Financial Institutions to Account IDs given by the dictionary Entity_to_Acct_2
+4) SAR narrative given below and identified by delimiters #### 
+
+
+Do the following:
+
+Step 1)  For each Financial institution in Entity_to_Acct_2, identify the accounts at that institution. Note, account IDs starting with the prefix "Dummy_" are placeholders for account IDs that
+ have not been identified in the narrative.
+
+Step 2)  Identify the owners of the accounts from  Entity_to_Acct_1 
+
+Step 3)  If an Individual is a beneficial owner of an Organization and the Organizations's account, note this in a scratch pad. If two individuals are closely related, note this in a scratch pad.
+
+Step 4) For each Financial institution, map each account ID to a Customer ID (E.g. CUST_001, CUST_002). If multiple accounts are owned by the same Individual or Organizations, map them to the same Customer ID
+
+
+Return this final mapping between Customer IDs and Account IDs in the form of a JSON
+
+
+An example is given below.
+
+
+
+1) List of Account IDs: ["345723","98765","Dummy_12345"]
+
+2) Entity_to_Acct_1 = {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":"98765"}
+
+3) Entity_to_Acct_2 = {"Bank of America":["345723","98765"],"Chase Bank":["Dummy_12345"]}
+
+4) Narrative:
+John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank.
+John and Jill own a business Acme Inc that has a  Business account, Account #98765 at Bank of America. John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from 
+her Acct at Chase Bank to Acct #98765.
+
+Step 1) For each Financial institution in Entity_to_Acct_2, identify the accounts at that institution. 
+
+At Bank of America, there are two accounts #345723 and #98765
+At Chase Bank, there is one account #Dummy_12345
+
+
+
+Step 2) Identify the owners of the accounts from Entity_to_Acct_1 
+
+Account  #345723 is owned by John
+Account #Dummy_12345 is owned by Jill.
+Account #98765 is owned by Acme Inc.
+
+
+Step 3) If an Individual is a beneficial owner of an Organization and the Organizations's account, note this in a scratch pad. If two individuals are closely related, note this in a scratch pad.
+
+John and Jill are co-owners of the business Acme Inc and therefore its accounts.
+
+Step 4) For each Financial institution, map each account ID to a Customer ID (E.g. CUST_001, CUST_002). If multiple accounts are owned by the same Individual or Organizations, map them to the same Customer ID
+
+At Bank of America, the account #345723 is owned by John, the account 98765 is owned by Acme Inc. So these two account IDs can be mapped to two customer IDs. The Account Dummy_12345 
+is an account at Chase as per Entity_to_Acct_2 and is owned by Jill as per Entity_to_Acct_1. This can be assigned to a different customer ID
+
+{"Bank of America": {"CUST_001": ["345723"], "CUST_002":["98765"]},
+"Chase Bank": {"CUST_003":["Dummy_12345"]}}
+
+
+
+
+
+######################### Extract narrative relevant just to the entity in question - - Might need GPT4-o########################
+
+Consider the narrative below. From this SAR, extract the part of the narrative that refers to transactions made between the following entity and/or Account IDs.
+ Note that I am giving the account IDs in the form {"Entity" : "Account ID"}.
+
+{
+    "John Doe": "#12345-6789",
+}
+
+
+Extract just the relevant sentences.
+
+
+####################### Extract narrative relevant just to the entity in question v2 ##################################
+
+Your objective is to extract or summarize the part of a SAR narrative I share with you that describes transactions involving specific Accounts.
+
+You will have the following three pieces of information:
+
+1) List of Account IDs
+2) The mapping between Individuals and Organizations referenced in the narrative to Account IDs given by the dictionary Entity_to_Acct_1
+3) SAR narrative given below and identified by delimiters #### 
+
+
+Do the following:
+
+Step 1) Identify an Account ID from the list of Account IDs.Note, account IDs starting with the prefix "Dummy_" are placeholders for account IDs that have not been identified in the narrative.
+
+Step 2)  From the dictionary Entity_to_Acct1, Identify the  individual and Organization  who owns the account.
+
+Step 3) Extract or summarize the narrative which describes transactions involving this account.
+
+Return the account ID and extractive narrative as a JSON. Do these for each account ID in the list of Account IDs
+
+
+An example is given below, demarcated by the delimiter ----.
+
+--------------------------------------------------------------------------
+
+1) List of Account IDs: ["345723","98765","Dummy_12345"]
+
+2) Entity_to_Acct_1 = {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":"98765"}
+
+3) Narrative:
+John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank.
+John and Jill own a business Acme Inc that has a  Business account, Account #98765 at Bank of America. John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from 
+her Acct at Chase Bank to Acct #98765.
+
+
+Step 1) The first account ID  is 345723
+
+Step 2) This Account ID is owned by John.
+
+Step 3)Extract the part of the narrative that references the Account 345723
+
+{"345723": "John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.John sends $2000 from Acct #345723 to Account #98765" }
+
+
+Now repeat the process for the second account ID
+
+Step 1) The second  account ID  is 98765
+
+Step 2) This Account ID is owned by Acme, Inc.
+
+Step 3)Extract the part of the narrative that references the Account 98765
+
+{"98765": "John sends $2000 from Acct #345723 to Account #98765" }
+
+Now repeat the process for the third Account ID.
+
+Step 1) The third  account ID  is Dummy_12345. Given the acocunt ID starts with Dummy_ , there won't be direct references to this account ID in the narrative. 
+
+Step 2) This Account ID is owned by Jill. Given the Account ID is dummy, pay attention to transactions made by Jill,the owner of the dummy account.
+
+Step 3)Extract the part of the narrative that references the Account Dummy_12345
+
+{"Dummy_12345": "John sends $3000 to Jill's account at Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank." }
+
+Return all extracted narratives as a JSON
+
+{"345723": "John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.John sends $2000 from Acct #345723 to Account #98765" ,
+ "98765": "John sends $2000 from Acct #345723 to Account #98765",
+  "Dummy_12345": "John sends $3000 to Jill's account at Chase. Jill deposited $3000 in Cash into her Acct at Chase Bank." }
+
+-----------------------------------------------------------------
+############################## Transaction Extraction ######################################
+Consider the narrative below. From this SAR, 
+1) Identify the number of transactions described
+2) Extract all transactions made by the following Account IDs. Note that I am giving the account IDs in the form {"Entity" : "Account ID"}.
+
+{
+   
+  "John Doe": "12345678910",
+  "Jennifer Doe": "981012345"
+
+}
+
+For each transaction ,extract the following attributes:
+Originator_Entity
+Originator_Account_ID
+Beneficiary_Entity
+Beneficiary_Account_ID
+Trxn_Channel
+Trxn_Date
+Trxn_Amount
+Branch or ATM Location
+
+If exact dates or transaction amounts are not mentioned. You can make reasonable assumptions.
+Note the Trxn Channel should be one of Wire, Cash, Check ,Monetary Instrument or similar. If this is missing , you can make a reasonable assumption.
+
+Ensure the transactions extracted are equal to the number of transactions described in the narrative.
+
+Output transactions as a JSON.
+
+
+############################## Transaction Extraction -v2#####################################################
+
+Your objective is to synthesize transactions from a narrative you are provided.
+
+You will have the following four pieces of information demarcated by the separator ###:
+
+1) A dictionary called Narrative with an Account ID and a narrative potentially describing transactions made by that account.
+2) The mapping between Individuals and Organizations referenced in the narrative to Account IDs, given by the dictionary Entity_to_Acct_1. Note, account IDs starting with the prefix "Dummy_" 
+are placeholders for account IDs that have not been identified in the narrative.
+3) The mapping between Financial Institutions to Account IDs given by the dictionary Entity_to_Acct_2. If the Financial institution for certain accounts are not specified, a dummy financial institution  "Bank" will be used for them.
+4) A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs given by the dictionary Bank_to_Cust_to_Acct
+
+
+Do the following:
+
+Step 1)  Identify the number of transactions described in the narrative. Note this is a scratch pad for verification later.
+
+
+Step 2)For each transaction,  
+
+a) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating
+the transaction.
+
+b) For each transaction, identify the Beneficiary Account ID, the Customer ID corresponding to the account, the beneficiary_Name which is the Individual Or Organization which is the 
+Beneficiary of the transaction.
+
+c) Identify the transaction channel or product used. This could be Wire, Cash, Checks or something similar. If this is missing, you can make a reasonable assumption.
+
+d) Identify the date and amount of the transaction. If this is missing, you can make reasonable assumptions.
+
+e) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted. If this is not specified, indicate it as "Missing"
+
+Ensure the following are extracted.
+
+-Originator_Name
+-Originator_Account_ID
+-Originator_Customer_ID
+-Beneficiary_Name
+-Beneficiary_Account_ID
+-Beneficiary_Customer_ID
+-Trxn_Channel
+-Trxn_Date in yyyy-mm-dd format
+-Trxn_Amount
+-Branch or ATM Location
+
+If any information is missing and can't be reasonably assumed, use an empty string "" to indicate it is missing.
+
+Step 3) Ensure the number of transactions extracted in Step 2 are the same as that noted in Step 1. if this is not the case, go back to Step 2.
+
+Step 4) Return the transactions as a JSON file with the key being a Trxn ID and value being the transaction attributes
+
+An example is given below, demarcated by the delimiter ----.
+
+
+Example :
+---
+Narrative = {"345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024.
+ John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024 . John  wrote a check to Jill from Acct #345723 on Jan 8,2024 for $1,000"}
+
+Entity_to_Acct_1 = {"John":["345723"],"Jill":["Dummy_12345"],"Acme Inc":"98765"}
+Entity_to_Acct_2 = {"Bank of America":["345723","98765"],"Chase Bank":["Dummy_12345"]}
+Bank_to_Cust_to_Acct = {"Bank of America": {"CUST_001": ["345723"], "CUST_002":["98765"]},
+"Chase Bank": {"CUST_003":["Dummy_12345"]}}
+
+
+Step 1) Identify the number of transactions described in the narrative. Note this is a scratch pad for verification later.
+
+ There are three trxns described in the narrative. A $5000 deposit, A $3000 transfer and a $3000 transfer.
+
+Step 2) For each transaction, identify the required attributes.
+
+For the first transaction, the Originator_Name is John, but this is a cash deposit , so there is no Account ID specified from which the cash originates, so it can be conisdered missing.
+The Originator Customer ID can also be considered missing.
+
+The Beneficiary_Name is John as the money is being deposited into John's account. The Beneficiary_Account_ID is #345723. From Bank_to_Cust_to_Acct, The Beneficiary Customer ID is CUST_001.
+
+The Trxn Channel is Cash as it is a cash deposit.
+The Trxn Date is  2024-01-04.
+the Trxn Amount is $5,000.
+The Branch was Main Road , NY
+
+For the second transaction, the Originator_Name is John. Although no account ID is specified, it is a wire transaction following a cash transaction, 
+so it has to come from John's account #345723.The Originator_Account_ID is #345723. The Originator Customer ID is CUST_001 as per Bank_to_Cust_to_Acct.
+
+The Beneficiary_Name is Acme Inc. The Beneficiary_Account_ID is #98765 as this account belongs to Acme Inc at Bank of America.
+ From Bank_to_Cust_to_Acct, The Beneficiary Customer ID is CUST_002.
+
+
+The Trxn Channel is Wire.
+The Trxn Date is  2024-01-06.
+The Trxn Amount is $3,000.
+The Branch is Missing as it is a wire transaction.
+
+
+For the third transaction, the Originator_Name is John. The Originator_Account_ID is 345723 . The Originator Customer ID is CUST_001 as per Bank_to_Cust_to_Acct.
+
+The Beneficiary_Name is Jill. The Beneficiary_Account_ID must be #Dummy_12345 as the information provided indicated that this is Jill's account at Chase Bank.
+From Bank_to_Cust_to_Acct, The Beneficiary Customer ID is CUST_003.
+
+
+The Trxn Channel is Check
+The Trxn Date is  2024-01-08.
+The Trxn Amount is $1,000.
+The Branch is Missing as it is a Check.
+
+Step 3) Ensure the number of transactions extracted in Step 2 are the same as that noted in Step 1. if this is not the case, go back to Step 2.
+
+Three transactions have been identified, which is the same as the number of transaction in scratch pad from Step 1)
+
+Step 4) Return the transactions as a JSON file with the key being a Trxn ID and value being the transaction attributes
+
+Now the transactions can be combined into a JSON file with a key being a Trxn ID staring from 1.
+
+ Trxns = {1 : {"Originator_Name": "John", "Originator_Account_ID": "", "Originator_Customer_ID":"","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
+          "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04, "Trxn_Amount":5000, "Branch or ATM Location": "Main Road,NY"
+        },
+          2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme,Inc","Beneficiary_Account_ID":"98765",
+          "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-06, "Trxn_Amount":3000, "Branch or ATM Location": ""
+        },
+        3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Jill","Beneficiary_Account_ID":"Dummy_12345",
+          "Beneficiary_Customer_ID":"CUST_003" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-08, "Trxn_Amount":1000, "Branch or ATM Location": ""
+
+
+ }
+---
