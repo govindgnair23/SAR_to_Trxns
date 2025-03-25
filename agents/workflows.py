@@ -130,48 +130,31 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         logging.error("Failed to instantiate Group Chat Manager")
         raise
 
-    input_text = json.dumps(input,indent =2)
+    
+    sub_narratives = split_dictionary_into_subnarratives(input)
 
-    # Use DiskCache as cache
-    with Cache.disk() as cache:
-        chat_results = sar_agent.initiate_chat(
-                    manager,
-                    message = input_text,
-                    summary_method= summary_method,
-                    summary_args = {
-                        "summary_prompt":summary_prompt
-                    } )
-    results = chat_results.summary
-    cleaned_results = results.strip("```python\n").strip("```")
-    # Convert to dictionary
-    results_dict = ast.literal_eval(cleaned_results)
-    logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for narrative ")
+    ### Call the agentic workflow repeatedly for each transaction set and concatenate the results   ###
+    trxn_dict_list = [] #List of generated trxn dictionaries
+    for i,sub_narrative in enumerate(sub_narratives): 
+        #Convert Dict to string to pass to LLM
+        input_text = json.dumps(sub_narrative,indent =2)
+        groupchat = GroupChat(agents = [trxn_generation_agent,trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
+        manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
+        # Use DiskCache as cache
+        with Cache.disk() as cache:
+            chat_results = sar_agent.initiate_chat(
+                        manager,
+                        message = input_text,
+                        summary_method= summary_method,
+                        summary_args = {
+                            "summary_prompt":summary_prompt
+                        } )
+        results = chat_results.summary
+        cleaned_results = results.strip("```python\n").strip("```")
+        # Convert to dictionary
+        results_dict = ast.literal_eval(cleaned_results)
+        logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for Sub narrative {i}")
+        print(results_dict)
+        trxn_dict_list.append(results_dict)
 
-    # # Convert input dict into multiple sub-dicts, one for each trxn set #
-    # sub_narratives = split_dictionary_into_subnarratives(input)
-
-    # ### Call the agentic workflow repeatedly for each transaction set and concatenate the results   ###
-    # trxn_dict_list = [] #List of generated trxn dictionaries
-    # for i,sub_narrative in enumerate(sub_narratives): 
-    #     #Convert Dict to string to pass to LLM
-    #     input_text = json.dumps(sub_narrative,indent =2)
-           #groupchat = GroupChat(agents = [trxn_generation_agent,trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
-           #manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
-    #     # Use DiskCache as cache
-    #     with Cache.disk() as cache:
-    #         chat_results = sar_agent.initiate_chat(
-    #                     manager,
-    #                     message = input_text,
-    #                     summary_method= summary_method,
-    #                     summary_args = {
-    #                         "summary_prompt":summary_prompt
-    #                     } )
-    #     results = chat_results.summary
-    #     cleaned_results = results.strip("```python\n").strip("```")
-    #     # Convert to dictionary
-    #     results_dict = ast.literal_eval(cleaned_results)
-    #     logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for Sub narrative {i}")
-    #     print(results_dict)
-    #     trxn_dict_list.append(results_dict)
-
-    return  results_dict
+    return  trxn_dict_list
