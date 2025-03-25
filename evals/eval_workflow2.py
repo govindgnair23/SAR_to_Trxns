@@ -20,6 +20,8 @@ if __name__ == "__main__":
     for idx, sar in enumerate(sars):
         sar_name = sar[sar_name]
         logging(f"Getting Predictions for SAR {idx+1}/{len(sars)}...")
+
+
         # Run the agent workflow
         pred_output = run_agentic_workflow2(sar.get_sar_extract(), config_file)
         logging(f"Evaluating Predictions for SAR {idx+1}/{len(sars)}...")
