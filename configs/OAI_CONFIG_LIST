@@ -1,0 +1,4 @@
+[
+    {"model": "gpt-4o-mini", "response_format": {"type": "json_object"}},
+    {"model": "gpt-4o", "response_format": {"type": "text"}  }
+]
