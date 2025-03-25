@@ -1,8 +1,21 @@
 # Ignore the virtual environment folder
 venv/
 
+
 # Ignore Python cache files
 __pycache__/
 
 #Ignore pdf files
 *.pdf
+
+#Ignore .env files
+.env
+
+#ignore cache files
+.cache
+
+#Ignore vscode files
+.vscode
+
+#Ignore temp folder used to keep temporary objects
+temp/

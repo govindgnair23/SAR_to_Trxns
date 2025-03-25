@@ -1,5 +1,7 @@
-pyautogen
+pyautogen==0.3.0
 matplotlib
 numpy
 pandas
 ipykernel
+pyyaml
+sklearn
