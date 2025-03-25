@@ -1,0 +1,17 @@
+Bank investigation file number EE987654. This SAR is being filed to summarize suspicious wire transfer and check cashing activity conducted by Richard Johnson, account number 99887766. On May 20, 2023, DEF Brokerage Firm, Office of Compliance, filed a suspicious activity report for Richard Johnson. In summary, the prior submission reported that during the period of April 1, 2023 through April 25, 2023, Mr. Johnson sent eight wire transfers for amounts just under $10,000 each to his business account in Panama.
+
+After DEF Brokerage Firm management advised the client that they would no longer accept such wire transfer instructions, the client began cashing checks drawn on his DEF Brokerage Firm account at money service businesses (MSBs) in Panama. Specifically, on June 5 and June 6, 2023, the client cashed four checks made payable to an MSB for an aggregate total of $38,000. When asked the reason for preparing and cashing these checks in this manner, Mr. Johnson claimed, in substance, that he did not want to fill out the paperwork required by Panamanian law for cash transactions of U.S. $10,000 or more. The account has been closed. Primary federal regulator – SEC.
+
+Specifically, the analysis of the wire transfer and check cashing activity for the period 4/1/23 through 6/6/23 revealed the following:
+Date	Account Number	Transaction Type	Amount	Beneficiary	Location
+04/01/23	99887766	Wire Transfer	$9,900	Business Account	Panama
+04/03/23	99887766	Wire Transfer	$9,800	Business Account	Panama
+04/10/23	99887766	Wire Transfer	$9,700	Business Account	Panama
+04/12/23	99887766	Wire Transfer	$9,900	Business Account	Panama
+04/17/23	99887766	Wire Transfer	$9,800	Business Account	Panama
+04/20/23	99887766	Wire Transfer	$9,700	Business Account	Panama
+04/25/23	99887766	Wire Transfer	$9,900	Business Account	Panama
+06/05/23	99887766	Check Cashing	$19,000	Casa de Cambio	Panama City, Panama
+06/06/23	99887766	Check Cashing	$19,000	Casa de Cambio	Panama City, Panama
+
+Due to the structured wire transfers and subsequent check cashing activities designed to avoid regulatory reporting requirements, this SAR is being filed. All records related to this matter are maintained by DEF Brokerage Firm’s compliance office in New York, NY. For further information, please contact Compliance Officer, Alex Martin, at (555) 321-6547.

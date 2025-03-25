@@ -1,0 +1,38 @@
+Bank investigation file number DD876543. This SAR is being filed to summarize suspicious cash deposits and wire transfer activity involving two corporate customers, Greenfield Solutions LLC and Bright Future Enterprises Inc., both registered in Nevada and sharing a common address at 7890 Corporate Way, Suite 202, in Las Vegas, Nevada. Numerous CTRs have been filed on cash deposits conducted on behalf of these companies. Our previous and recent reviews of the customers’ activities revealed that the cash deposits and wire transfers involving these companies might be consistent with money laundering.
+
+Because the bank was unable to determine any particulars about the companies to establish a business justification for the activity, the following patterns appeared suspicious:
+
+    A repeating pattern of structured cash deposits into business accounts held by the companies with wire transfers to a particular beneficiary.
+    Individual transactions conducted in large dollar amounts.
+    Individual transactions conducted in even dollar amounts.
+    Individual transactions conducted within a short period of time (i.e., daily basis, 2x's daily, every other day).
+    Periodic incoming wire transfers from a foreign corporation via a correspondent account maintained by a foreign bank at Desert Bank.
+
+Specifically, the analysis of the cash deposit and wire activity for the period 3/1/23 through 6/30/24 revealed the following:
+Date	Account	Deposit Amount	Transaction Type	Beneficiary	Beneficiary Account	Bank	Location
+03/10/23	#987654321	$9,900	Cash Deposit				East Las Vegas Branch
+03/11/23	#987654321	$9,900	Cash Deposit				West Las Vegas Branch
+03/12/23	#987654321	$9,900	Cash Deposit				Central Las Vegas Branch
+03/13/23	#987654321	$9,900	Wire Transfer	Continental Trading Ltd.	#123456789	EuroBank	Zurich, Switzerland
+03/14/23	#123456789	$9,800	Cash Deposit				East Las Vegas Branch
+03/15/23	#123456789	$9,800	Cash Deposit				West Las Vegas Branch
+03/16/23	#123456789	$9,800	Wire Transfer	Continental Trading Ltd.	#123456789	EuroBank	Zurich, Switzerland
+03/20/23	#987654321	$9,900	Cash Deposit				East Las Vegas Branch
+03/21/23	#987654321	$9,900	Wire Transfer	Continental Trading Ltd.	#123456789	EuroBank	Zurich, Switzerland
+03/22/23	#123456789	$9,800	Cash Deposit				Central Las Vegas Branch
+03/23/23	#123456789	$9,800	Wire Transfer	Continental Trading Ltd.	#123456789	EuroBank	Zurich, Switzerland
+06/10/24	#987654321	$9,900	Cash Deposit				East Las Vegas Branch
+06/11/24	#987654321	$9,900	Cash Deposit				West Las Vegas Branch
+06/12/24	#987654321	$9,900	Wire Transfer	Global Services GmbH	#987654321	Deutsche Bank	Berlin, Germany
+06/13/24	#123456789	$9,800	Cash Deposit				Central Las Vegas Branch
+06/14/24	#123456789	$9,800	Wire Transfer	Global Services GmbH	#987654321	Deutsche Bank	Berlin, Germany
+06/15/24	#987654321	$9,900	Cash Deposit				East Las Vegas Branch
+06/16/24	#987654321	$9,900	Wire Transfer	Global Services GmbH	#987654321	Deutsche Bank	Berlin, Germany
+06/17/24	#123456789	$9,800	Cash Deposit				Central Las Vegas Branch
+06/18/24	#123456789	$9,800	Wire Transfer	Global Services GmbH	#987654321	Deutsche Bank	Berlin, Germany
+
+The total number and dollar value of cash deposits into accounts held by the companies are as follows: Greenfield Solutions LLC, account #987654321, 190 deposits totaling $1,881,000; Bright Future Enterprises Inc., account #123456789, 135 deposits totaling $1,323,000. Reviews of the accounts indicate all the deposits were night deposits conducted through three main branches of Desert Bank: East Las Vegas, West Las Vegas, and Central Las Vegas. The average amount of deposits negotiated through account #123456789 ranged from $9,000 to $17,000. Many of the transactions conducted on the same day at multiple branches in amounts under $10,000 may have been conducted to circumvent federal reporting requirements.
+
+At the time the accounts were opened with our financial institution, a registered agent for both companies provided corporate filings with the Secretary of State of Nevada indicating the companies are for-profit, engaged in electronic goods trading. As part of our annual review of corporate accounts, we were unable to substantiate if the companies are still active from researching public records, commercial database systems, or the Internet. Attempted telephone contact with the companies identified both numbers as being disconnected. The companies do not appear to maintain operating businesses in Nevada; and there is no indication of legitimate business activity.
+
+Due to these factors and the suspicious demeanor of the account activity, bank management has decided to end our banking relationships with Greenfield Solutions LLC and Bright Future Enterprises Inc. All records related to this matter are being maintained by the bank’s central branch operations officer in Las Vegas, NV. For further information, please contact Compliance Officer, Jennifer Lee, at (555) 123-9876.

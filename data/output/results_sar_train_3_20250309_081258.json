@@ -1,0 +1,38 @@
+{
+    "Entities": {
+        "Individuals": [
+            "John Doe",
+            "Jennifer Doe"
+        ],
+        "Organizations": [
+            "Quickie Car Wash"
+        ],
+        "Financial_Institutions": [
+            "Aussie Bank"
+        ]
+    },
+    "Account_IDs": [
+        "12345678910",
+        "981012345"
+    ],
+    "Acct_to_FI": {
+        "12345678910": "Dummy_Bank_1",
+        "981012345": "Aussie Bank"
+    },
+    "Acct_to_Cust": {
+        "12345678910": "John Doe",
+        "981012345": "Jennifer Doe"
+    },
+    "FI_to_Acct_to_Cust": {
+        "Dummy_Bank_1": {
+            "12345678910": "CUST_001"
+        },
+        "Aussie Bank": {
+            "981012345": "CUST_002"
+        }
+    },
+    "Narratives": {
+        "12345678910": "John Doe made structured cash deposits into his personal checking account at Dummy_Bank_1, totaling $29,650, with the following details: 03/15/02 - $9,950.00; 03/17/02 - $9,700.00; 03/18/02 - $10,000. Additionally, he conducted immediate wire transfers to Jennifer Doe's account at Aussie Bank, totaling $29,500. The wire transfer details are as follows: 03/16/02 - $9,900.00; 03/18/02 - $9,700.00; 03/19/02 - $9,900.00.",
+        "981012345": "Jennifer Doe receives wire transfers from John Doe's account at Dummy_Bank_1, with total amounts received being $29,500 over several transactions: 03/16/02 - $9,900.00; 03/18/02 - $9,700.00; 03/19/02 - $9,900.00."
+    }
+}
