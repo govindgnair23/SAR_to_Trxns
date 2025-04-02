@@ -1,5 +1,5 @@
 from autogen import GroupChat, GroupChatManager
-from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives
+from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df
 from agents.agents import instantiate_all_base_agents, instantiate_agents_for_trxn_generation
 from autogen import Cache
 from typing import  Dict, Any, List
@@ -134,7 +134,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     sub_narratives = split_dictionary_into_subnarratives(input)
 
     ### Call the agentic workflow repeatedly for each transaction set and concatenate the results   ###
-    trxn_dict_list = [] #List of generated trxn dictionaries
+    trxn_df_list = [] #List of generated trxn dataframes
     for i,sub_narrative in enumerate(sub_narratives): 
         #Convert Dict to string to pass to LLM
         input_text = json.dumps(sub_narrative,indent =2)
@@ -154,7 +154,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         # Convert to dictionary
         results_dict = ast.literal_eval(cleaned_results)
         logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for Sub narrative {i}")
-        print(results_dict)
-        trxn_dict_list.append(results_dict)
+        trxn_df = convert_trxn_dict_to_df(i,results_dict)
+        trxn_df_list.append(trxn_df)
 
-    return  trxn_dict_list
+    return  trxn_df_list
