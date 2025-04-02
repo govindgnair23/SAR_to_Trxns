@@ -613,7 +613,7 @@ agents:
 
   - name: "Group_Chat_Manager"
     llm_config:
-      model: "gpt-4o-mini"
+      model: "gpt-4o"
     summary_method : "reflection_with_llm"
     summary_prompt: |
         Return the synthesized transactions in the following format as a Python Dictionary only.
