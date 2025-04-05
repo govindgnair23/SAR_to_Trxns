@@ -7,6 +7,7 @@ import json
 from difflib import SequenceMatcher
 import autogen
 from datetime import datetime
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -155,9 +156,10 @@ def get_agent_config(agent_configs, agent_name):
             return agent_config
     raise ValueError(f"Agent '{agent_name}' not found.")   
 
-def write_dict_to_json_file(data_dict, file_path):
+def write_data_to_file(data, file_path):
     """
-    Writes the provided dictionary to a JSON file at the specified path.
+    Writes the provided data to a file. If the data is a dictionary, writes to a JSON file.
+    If the data is a pandas DataFrame, writes to a CSV file.
     Ensures that the target directory exists.
     """
     directory = os.path.dirname(file_path)
@@ -167,11 +169,18 @@ def write_dict_to_json_file(data_dict, file_path):
             print(f"Created directory: {directory}")
         except OSError as e:
             raise OSError(f"Failed to create directory {directory}: {e}") from e
+
     try:
-        with open(file_path, 'w', encoding='utf-8') as json_file:
-            json.dump(data_dict, json_file, indent=4)
-            print(f"Successfully wrote data to {file_path}")
-    except IOError as e:
+        if isinstance(data, dict):
+            with open(file_path, 'w', encoding='utf-8') as json_file:
+                json.dump(data, json_file, indent=4)
+                print(f"Successfully wrote JSON data to {file_path}")
+        elif isinstance(data, pd.DataFrame):
+            data.to_csv(file_path, index=False)
+            print(f"Successfully wrote DataFrame to CSV file at {file_path}")
+        else:
+            raise TypeError("Unsupported data type. Only dict and pandas DataFrame are supported.")
+    except Exception as e:
         raise IOError(f"Failed to write to file {file_path}: {e}") from e
 
 
@@ -309,7 +318,7 @@ def split_dictionary_into_subnarratives(data: dict) -> list:
              corresponding to one (AccountID, Trxn_Set) pair.
     """
     results = []
-    original_narrative = data.get("Narrative", {})
+    original_narrative = data.get("Narratives", {})
 
     for acct_id, trxn_sets in original_narrative.items():
         for trxn_set_label, narration_text in trxn_sets.items():
@@ -321,7 +330,7 @@ def split_dictionary_into_subnarratives(data: dict) -> list:
                 "Acct_to_Cust": data["Acct_to_Cust"],
                 "FI_to_Acct_to_Cust": data["FI_to_Acct_to_Cust"],
                 # Narrow the Narrative down to one (acct_id, trxn_set_label)
-                "Narrative": {
+                "Narratives": {
                     acct_id: {
                         trxn_set_label: narration_text
                     }
@@ -354,3 +363,23 @@ def assert_dict_structure(testcase, expected, actual):
             # You could also check type: 
             # testcase.assertIsInstance(actual[key], type(expected_value), ...)
             pass
+
+def convert_trxn_dict_to_df(i:int,trxn_dict:dict) -> pd.DataFrame:
+    """
+    Converts a transaction dictionary into a dataframe
+    """
+    flattened_data = []
+
+    for key, inner_dict in trxn_dict.items():
+        for transaction_id, transaction_details in inner_dict.items():
+            # Add the transaction ID and account ID to the details
+            transaction_details['Transaction_Set'] = i
+            transaction_details['Account_ID'] = key
+            flattened_data.append(transaction_details)
+
+    # Convert the flattened data to a DataFrame
+    df = pd.DataFrame(flattened_data)
+    # Reorder the columns to make  Transaction Set, Transaction_ID and Account_ID the first three columns
+    column_order = ['Transaction_Set', 'Account_ID'] + [col for col in df.columns if col not in ['Transaction_Set', 'Account_ID']]
+    df = df[column_order]
+    return df
