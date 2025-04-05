@@ -493,7 +493,9 @@ agents:
       model: "gpt-4o-mini"
     human_input_mode: "NEVER"
     code_execution_config: False
-    description: "An AI Assistant who is good at generating a small number of transactions especially when the precise trxn amount of each trxn is known"
+    description: |
+      An AI Assistant who is good at generating a small number of transactions,especially when the precise trxn amount and date of each trxn 
+      is known. Use only when the number of transactions to be generated is 10 or fewer.
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the synthesized transactions in the following format as a Python Dictionary only.
@@ -597,7 +599,9 @@ agents:
       ----
     overwrite_instructions: True
     overwrite_tools: True
-    description: "An AI Assistant who is good at generating a large number of transactions especially when the precise trxn amount of each trxn is NOT known"
+    description: |
+       An AI Assistant who is good at generating a large number of transactions,especially when the precise trxn amount or dates of 
+       each trxn is NOT known. Always use when the number of transactions to be genersted is more than 10.
     llm_config:
       model: "gpt-4o-mini"
     
