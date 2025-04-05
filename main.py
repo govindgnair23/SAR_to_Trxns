@@ -1,12 +1,17 @@
 # main.py
 
-from utils import read_file, write_dict_to_json_file, generate_dynamic_output_file_name
+from utils import read_file, write_data_to_file, generate_dynamic_output_file_name
 from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
 from dotenv import load_dotenv
 import os
 import logging
 
+
+
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+
 
 def main(filename):
     load_dotenv()
@@ -25,7 +30,7 @@ def main(filename):
 
 
 
-    #output_file_path = generate_dynamic_output_file_name(filename)
+    
     results1_p1 = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
@@ -35,14 +40,16 @@ def main(filename):
                       'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
                       'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
                       'Narratives' : {"345723": 
-                             {"Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025."} }
+                             {
+                              "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
                      }
 
     # Run second agentic worklfow
     results2 = run_agentic_workflow2(results1_p1,config_file)
+    output_file_path = generate_dynamic_output_file_name(filename,output_file_type="csv")
     
-    #write_dict_to_json_file(results1, output_file_path)
-    print(results2)
+    write_data_to_file(results2, output_file_path)
+    
 
     return results2 #, results2
     

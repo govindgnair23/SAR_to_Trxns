@@ -14,8 +14,10 @@ sar_narratives = read_data(train = True)
 
 
 if __name__ == "__main__":
-    # Get predicted trxns for each sar extract
-     
+    #Restrict to just first sar for testing
+    sars = sars[0]
+
+    # Get predicted trxns for each sar extract   
     sar_trxn_metrics = []
     for idx, sar in enumerate(sars):
         sar_name = sar[sar_name]
@@ -24,6 +26,8 @@ if __name__ == "__main__":
 
         # Run the agent workflow
         pred_output = run_agentic_workflow2(sar.get_sar_extract(), config_file)
+        #Aggregate list of dictionaries into a dataframe
+
         logging(f"Evaluating Predictions for SAR {idx+1}/{len(sars)}...")
         trxn_metrics = compare_trxns(pred_output,expected_trxns[sar_name])
         sar_trxn_metrics.append(pred_output)

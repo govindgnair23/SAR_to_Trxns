@@ -19,3 +19,6 @@ __pycache__/
 
 #Ignore temp folder used to keep temporary objects
 temp/
+
+#Ignore python version
+.python-version
