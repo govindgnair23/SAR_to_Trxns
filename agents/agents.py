@@ -177,28 +177,29 @@ def instantiate_agents_for_trxn_generation(configs):
         raise
 
 
-    #Assistant API Tool Schema for Trxn Generation
-    generate_transactions_schema = get_function_schema(
-    generate_transactions,
-    name = "generate_transactions",
-    description = " A function for generating transactions when a large number of transactions have to be synthesizes"
-                )
+    
 
     ###########################################################
     # Agent 3: Instantiate Transaction Generation with tool use
     ###########################################################
 
+    #Assistant API Tool Schema for Trxn Generation
+    generate_transactions_schema = get_function_schema(
+    generate_transactions,
+    name = "generate_transactions",
+    description = " A function for generating transactions when a large number of transactions have to be synthesized")
+
     config_list = get_config_list()
 
-    trxn_generation_agent_w_tool_config = get_agent_config(configs, agent_name = "Transaction_Generation_Agent")
+    trxn_generation_agent_w_tool_config = get_agent_config(configs, agent_name = "Transaction_Generation_Agent_w_Tool")
     try:
         # Extract configuration parameters
         agent_name = trxn_generation_agent_w_tool_config.get('name', 'Default_Agent_Name')
         instructions = trxn_generation_agent_w_tool_config.get('instructions')
         llm_config = trxn_generation_agent_w_tool_config.get('llm_config')
         description =  trxn_generation_agent_w_tool_config.get("description","")
-        # overwrite_instructions = trxn_generation_agent_w_tool_config.get('overwrite_instructions')
-        # overwrite_tools = trxn_generation_agent_w_tool_config.get('overwrite_tools')
+        overwrite_instructions = trxn_generation_agent_w_tool_config.get('overwrite_instructions')
+        overwrite_tools = trxn_generation_agent_w_tool_config.get('overwrite_tools')
 
         logging.info(f"Loaded configuration for Trxn Generation Agent with Tool")
 
@@ -207,12 +208,21 @@ def instantiate_agents_for_trxn_generation(configs):
             name=agent_name,
             instructions=instructions,
             description = description,
+            overwrite_instructions = overwrite_instructions,
+            overwrite_tools = overwrite_tools,
             llm_config= {
                     "config_list":config_list,
                     "tools":[generate_transactions_schema]
 
                 },
         )
+
+
+        #Register tool with the agent
+        agent3.register_function(
+                function_map={"generate_transactions": generate_transactions}
+            )
+
         logging.info("Transaction_Generation_Agent with tool  instantiated successfully.")
         agents["Transaction_Generation_Agent_w_Tool"] = agent3
     except Exception as e:

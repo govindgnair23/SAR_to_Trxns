@@ -6,6 +6,8 @@ from typing import  Dict, Any, List
 import ast
 import logging
 import json
+import pandas as pd
+import copy
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -110,6 +112,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     trxn_generation_agent = agents["Transaction_Generation_Agent"]
     trxn_generation_agent_w_tool = agents["Transaction_Generation_Agent_w_Tool"]
 
+
     ##########################################################
     # Instantiate Group Chat Manager Agent
     ##########################################################
@@ -121,10 +124,10 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         llm_config = group_chat_manager_config.get('llm_config')
         summary_method = group_chat_manager_config.get("summary_method")
         summary_prompt = group_chat_manager_config.get("summary_prompt")
-        logging.info("Loaded configuration for Group Chat and Group Chat Manager")
-        groupchat = GroupChat(agents = [trxn_generation_agent,trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
-        manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
-        logging.info("Instantiated GroupChat and GroupChat Manager")
+        #logging.info("Loaded configuration for Group Chat and Group Chat Manager")
+        #groupchat = GroupChat(agents = [trxn_generation_agent_w_tool1,trxn_generation_agent_w_tool2],messages=[],max_round=2,allow_repeat_speaker=False)
+        #manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
+        #logging.info("Instantiated GroupChat and GroupChat Manager")
 
     except Exception as e:
         logging.error("Failed to instantiate Group Chat Manager")
@@ -138,8 +141,10 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     for i,sub_narrative in enumerate(sub_narratives): 
         #Convert Dict to string to pass to LLM
         input_text = json.dumps(sub_narrative,indent =2)
+        logging.info(f"Loaded configuration for Group Chat and Group Chat Manager for sub narratuve {i}")
         groupchat = GroupChat(agents = [trxn_generation_agent,trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
         manager = GroupChatManager(groupchat=groupchat, llm_config = llm_config)
+        logging.info(f"Instantiated GroupChat and GroupChat Manager for sub narratuve {i}")
         # Use DiskCache as cache
         with Cache.disk() as cache:
             chat_results = sar_agent.initiate_chat(
@@ -153,8 +158,12 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         cleaned_results = results.strip("```python\n").strip("```")
         # Convert to dictionary
         results_dict = ast.literal_eval(cleaned_results)
-        logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for Sub narrative {i}")
-        trxn_df = convert_trxn_dict_to_df(i,results_dict)
+        logging.info(f"Results from  Transaction Generation Agent converted to a dictionary for Sub narrative {i+1}")
+        trxn_df = convert_trxn_dict_to_df(i+1,results_dict)
         trxn_df_list.append(trxn_df)
 
-    return  trxn_df_list
+    # Concatenate to get a single dataframe with trxns for all trxns sets
+    trxns_df_final = pd.concat(trxn_df_list)
+    trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
+
+    return  trxns_df_final

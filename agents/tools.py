@@ -42,7 +42,7 @@ def generate_transactions(
     trxn_amounts = np.round(np.random.uniform(low=Min_Ind_Trxn_Amt,high=Max_Ind_Trxn_Amt,size = N_transactions),2)
 
     for i in range(N_transactions):
-        trxns[f"{i+1}"] = {"Originator_Name": Originator_Name , "Originator_Account_ID": Originator_Account_ID,"Originator_Customer_ID": Originator_Customer_ID,
+        trxns[(i+1)] = {"Originator_Name": Originator_Name , "Originator_Account_ID": Originator_Account_ID,"Originator_Customer_ID": Originator_Customer_ID,
                             "Beneficiary_Name": Beneficiary_Name, "Beneficiary_Account_ID": Beneficiary_Account_ID,"Beneficiary_Customer_ID": Beneficiary_Customer_ID,
                              "Trxn_Channel": trxn_channels[i], "Trxn_Date": trxn_dates[i], "Trxn_Amount":trxn_amounts[i],
                               "Branch_or_ATM_Location": Branch_or_ATM_Location }
