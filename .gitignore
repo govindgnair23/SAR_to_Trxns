@@ -22,3 +22,10 @@ temp/
 
 #Ignore python version
 .python-version
+
+#Ignore output folder where results are written
+data/output
+
+#Other unnecessary files
+.DS_Store
+.tmp.driveupload/
