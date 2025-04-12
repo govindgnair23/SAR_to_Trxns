@@ -1,5 +1,5 @@
 from autogen import GroupChat, GroupChatManager
-from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df
+from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df,generate_dynamic_output_file_name
 from agents.agents import instantiate_all_base_agents, instantiate_agents_for_trxn_generation
 from autogen import Cache
 from typing import  Dict, Any, List
@@ -133,8 +133,9 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         logging.error("Failed to instantiate Group Chat Manager")
         raise
 
-    
+    logging.info(f"Input is of type: {type(input)}")
     sub_narratives = split_dictionary_into_subnarratives(input)
+    logging.info(f"No of sub-narratives created: {len(sub_narratives)}")
 
     ### Call the agentic workflow repeatedly for each transaction set and concatenate the results   ###
     trxn_df_list = [] #List of generated trxn dataframes
@@ -163,7 +164,16 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         trxn_df_list.append(trxn_df)
 
     # Concatenate to get a single dataframe with trxns for all trxns sets
-    trxns_df_final = pd.concat(trxn_df_list)
-    trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
+    if trxn_df_list:
+        trxns_df_final = pd.concat(trxn_df_list)
+        trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
+    else:
+        logging.warning("No transaction dataframes were generated. Returning empty dataframe.")
+        trxns_df_final = pd.DataFrame()
+
+    #Write output file for later reuse
+    output_file = generate_dynamic_output_file_name(filename="trxn_metrics",output_file_type="csv",
+                                                    output_folder="./data/output")
+    trxns_df_final.to_csv(output_file)
 
     return  trxns_df_final
