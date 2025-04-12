@@ -488,6 +488,8 @@ agents:
           }
       }
 
+      Return only the Python Dictionary. Do not include any additional comments.
+
       ----
     llm_config:
       model: "gpt-4o-mini"
@@ -498,7 +500,7 @@ agents:
       is known. Use only when the number of transactions to be generated is 10 or fewer.
     summary_method: "reflection_with_llm"
     summary_prompt: |
-        Return the synthesized transactions in the following format as a Python Dictionary only.
+        Return the synthesized transactions in the following format as a Python Dictionary only. Do not include any other comments.
                                  { <Acct_ID> : {<Trxn_ID> : 
                                                     {"Originator_Name": <Originator_Name>,
                                                      "Originator_Account_ID": <Originator_Account_ID>, 
@@ -594,7 +596,8 @@ agents:
         
         Step 8) All the required attributes have been gathered.
 
-        Step 9) Call the function generate_transactions with the collected arguments. Return results as a Python Dictionary only.
+        Step 9) Call the function generate_transactions with the collected arguments. Return results as a Python Dictionary only. Do not include any
+        other comments.
 
       ----
     overwrite_instructions: True
