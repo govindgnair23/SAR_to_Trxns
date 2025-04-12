@@ -389,11 +389,11 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
             # -----------------------------------------------------
             # 4. Location checks
             # -----------------------------------------------------
-            expected_locations = set(expected.get("Trxn_Branch_ATM_Location", []))
-            if sub_df["Trxn_Branch_ATM_Location"].dropna().empty:
+            expected_locations = set(expected.get("Branch_or_ATM_Location", []))
+            if sub_df["Branch_or_ATM_Location"].dropna().empty:
                 actual_locations = set()
             else:
-                actual_locations = set(sub_df["Trxn_Branch_ATM_Location"].dropna().unique())
+                actual_locations = set(sub_df["Branch_or_ATM_Location"].dropna().unique())
 
             missing_locations = list(expected_locations - actual_locations)
             extra_locations = list(actual_locations - expected_locations)
