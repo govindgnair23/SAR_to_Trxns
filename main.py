@@ -18,11 +18,12 @@ def main(filename):
     api_key = os.getenv("OPEN_API_KEY")
     config_file = 'configs/agents_config.yaml'  # Update this path as needed
     
-    # train_sars = read_data(train=True)
-    #message = read_file(filename)
+    #train_sars = read_data(train=True)
+    #Read specific SAR
+    message = read_file(filename)
 
-    # Run first agentic workflow
-    #results1 = run_agentic_workflow1(message,config_file)
+    # Run first agentic workflow to extract entities
+    results1 = run_agentic_workflow1(message,config_file)
 
     #Loop through the narrative for each account and generate transactions - To be Done
     ###For now just pick one account for testing purposes.
@@ -31,27 +32,25 @@ def main(filename):
 
 
     
-    results1_p1 = {'Entities': 
-                            {'Individuals': ['John', 'Jill'], 
-                            'Organizations': ['Acme Inc'], 
-                            'Financial_Institutions': ['Bank of America', 'Chase Bank']},
-                      'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
-                      'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
-                      'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
-                      'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
-                      'Narratives' : {"345723": 
-                             {
-                              "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
-                     }
+    # results1_p1 = {'Entities': 
+    #                         {'Individuals': ['John', 'Jill'], 
+    #                         'Organizations': ['Acme Inc'], 
+    #                         'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+    #                   'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+    #                   'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+    #                   'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+    #                   'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+    #                   'Narratives' : {"345723": 
+    #                          {
+    #                           "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
+    #                  }
 
-    # Run second agentic worklfow
-    results2 = run_agentic_workflow2(results1_p1,config_file)
-    output_file_path = generate_dynamic_output_file_name(filename,output_file_type="csv")
+    # Run second agentic worklfow to extract transactions
+    results2 = run_agentic_workflow2(results1,config_file)
     
-    write_data_to_file(results2, output_file_path)
     
 
-    return results2 #, results2
+    return results2 
     
 
 

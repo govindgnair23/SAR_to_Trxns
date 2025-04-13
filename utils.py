@@ -270,6 +270,11 @@ def generate_dynamic_output_file_name(filename, output_file_type="json", output_
     else:
         base_name = filename
 
+    #Ensure output folder exists, if not create it
+    # Ensure the folder exists (or handle the error appropriately)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     # Create a timestamp in the format YYYYMMDD_HHMMSS
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 

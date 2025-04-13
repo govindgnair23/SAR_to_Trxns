@@ -1,5 +1,5 @@
 from autogen import GroupChat, GroupChatManager
-from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df,generate_dynamic_output_file_name
+from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df,generate_dynamic_output_file_name , write_data_to_file
 from agents.agents import instantiate_all_base_agents, instantiate_agents_for_trxn_generation
 from autogen import Cache
 from typing import  Dict, Any, List
@@ -96,6 +96,12 @@ def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
 
     # Combine results from first agentic workflow
     results = {**results_dict0,**results_dict1,**results_dict2}
+
+    #Write output file for later reuse or verification
+    output_file = generate_dynamic_output_file_name(filename="entity_metrics",output_file_type="json",
+                                                    output_folder="./data/output")
+    
+    write_data_to_file(results,output_file)
     
     return results
 
@@ -174,6 +180,6 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     #Write output file for later reuse
     output_file = generate_dynamic_output_file_name(filename="trxn_metrics",output_file_type="csv",
                                                     output_folder="./data/output")
-    trxns_df_final.to_csv(output_file)
+    write_data_to_file(trxns_df_final,output_file)
 
     return  trxns_df_final
