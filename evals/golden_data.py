@@ -35,7 +35,7 @@ class SAR:
             "Acct_to_FI" : self.gold_acct_to_fi,
             "Acct_to_Cust": self.gold_acct_to_cust,
             'FI_to_Acct_to_Cust': self.gold_acct_to_cust,
-            'Narrative': self.gold_narrative
+            'Narratives': self.gold_narrative
         }
 
         return sar_extract

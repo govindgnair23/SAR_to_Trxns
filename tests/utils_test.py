@@ -9,7 +9,7 @@ def assert_transaction_matches(test_case: unittest.TestCase, actual_df: pd.DataF
     #Test Total Amount of trxns
     test_case.assertAlmostEqual(total_amount, expected["Total_Amount"], delta=0.1 * expected["Total_Amount"],
                                 msg="Total amount mismatch")
-    #Test Total No of Trxns
+    #Test Total No of of trxns
     test_case.assertEqual(len(actual_df), expected["N_trxns"], "Transaction count mismatch")
 
     test_case.assertTrue((actual_df["Originator_Account_ID"] == expected["Originator_Account_ID"]).all(),

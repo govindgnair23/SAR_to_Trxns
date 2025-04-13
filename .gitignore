@@ -29,3 +29,6 @@ data/output
 #Other unnecessary files
 .DS_Store
 .tmp.driveupload/
+
+#Ignore log files
+logs/

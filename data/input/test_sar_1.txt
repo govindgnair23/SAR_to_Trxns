@@ -1,3 +1,5 @@
-John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at Chase.
-Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a Business account, Account #98765. 
-John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 1,2025 at the Jersey City Branch.
+John sends $3000 to Jill's account at Chase by Wire on Jan 5,2025.
+Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 8, 2025 at the Manhattan branch.
+John and Jill own a business Acme Inc that has a Business account, Account #98765. 
+John sends $2000 from Acct #345723 to Account #98765 by Check. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Jan 18,2025.
