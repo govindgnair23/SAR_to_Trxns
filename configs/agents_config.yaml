@@ -354,17 +354,17 @@ agents:
       Consolidate narratives for all accounts. Return this information  as Python Dictionary. Return only the final Python dictionary. Do not include any extra commentary, code fences, or text outside the dictionary.
 
       Narratives = {"345723": 
-                    {"Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025. 
-                    "Trxn_Set_2": John sends $4000  in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025" } } },
+                     { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025.", 
+                    "Trxn_Set_2": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025" },
                    "98765": 
-                       {"Trxn_Set_1": ""John sends $2000  in wires from Acct #99999 to Account #98765 on Jan 31,2025"" } ,
+                       {"Trxn_Set_1": "John sends $2000  in wires from Acct #99999 to Account #98765 on Jan 31,2025"} ,
                    "12345": 
                         {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
                    {"99999": 
                        {"Trxn_Set_1": "John deposited $5000 in Cash into  Acct #99999 at Bank of America on Jan 1, 2025",
                         "Trxn_Set_2": "John sends $2000 from Acct #99999 to Account #98765 by Wire on Jan 31,2025."},
                    "Dummy_Acct_1":
-                       {"Trxn_Set_1": "John sends $4000 by Wire from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025",
+                       {"Trxn_Set_1": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase Bank on Jan 31,2025",
                         "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025 " ,
                         "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025"  ,
                         "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." 
