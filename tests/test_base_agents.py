@@ -475,33 +475,33 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
       4) Returns a Python dictionary keyed by Transaction ID (e.g. 1, 2, 3).
     """
 
-    
-    def setUpClass(self):
+    @classmethod
+    def setUpClass(cls):
         """
         Runs once before any test methods in this class are executed.
         Loads agent configs, instantiates agents, and runs the scenario so the results
         are available to all tests.
         """
         logging.info("Loading agent configs...")
-        self.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+        cls.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
 
         logging.info("Step 1: All agent configurations read")
-        self.sar_agent_config = get_agent_config(self.agent_configs, "SAR_Agent")
+        cls.sar_agent_config = get_agent_config(cls.agent_configs, "SAR_Agent")
         logging.info("Step 2: Extracted config for SAR Agent")
-        self.sar_agent = instantiate_base_agent('SAR_Agent', self.sar_agent_config)
+        cls.sar_agent = instantiate_base_agent('SAR_Agent', cls.sar_agent_config)
         logging.info("Step 3: Instantiated SAR Agent")
         
         logging.info("Extracting Transaction_Generation_Agent config...")
-        self.agent_config = get_agent_config(self.agent_configs, "Transaction_Generation_Agent")
+        cls.agent_config = get_agent_config(cls.agent_configs, "Transaction_Generation_Agent")
 
         logging.info("Instantiating Transaction Generation Agent...")
-        self.transaction_generation_agent = instantiate_base_agent(
+        cls.transaction_generation_agent = instantiate_base_agent(
             'Transaction_Generation_Agent', 
-            self.agent_config
+            cls.agent_config
         )
 
         # Example test message we will reuse from instructions
-        self.test_message = """
+        cls.test_message = """
         1) Narrative = {
           "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
                      John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
@@ -516,7 +516,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         """
 
         # Expected Results
-        self.expected_trxns = {
+        cls.expected_trxns = {
             "345723": {
                 1: {
                     "Originator_Name": "John",
@@ -528,19 +528,19 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                     "Trxn_Channel": "Cash",
                     "Trxn_Date": "2024-01-04",
                     "Trxn_Amount": 5000,
-                    "Branch_or_ATM Location": "Main Road,NY"
+                    "Branch_or_ATM_Location": "Main Road,NY"
                 },
                 2: {
                     "Originator_Name": "John",
                     "Originator_Account_ID": "345723",
                     "Originator_Customer_ID": "CUST_001",
-                    "Beneficiary_Name": "Acme,Inc",
+                    "Beneficiary_Name": "Acme Inc",
                     "Beneficiary_Account_ID": "98765",
                     "Beneficiary_Customer_ID": "CUST_002",
                     "Trxn_Channel": "Wire",
                     "Trxn_Date": "2024-01-06",
                     "Trxn_Amount": 3000,
-                    "Branch_or_ATM Location": ""
+                    "Branch_or_ATM_Location": ""
                 },
                 3: {
                     "Originator_Name": "John",
@@ -552,13 +552,13 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                     "Trxn_Channel": "Check",
                     "Trxn_Date": "2024-01-08",
                     "Trxn_Amount": 1000,
-                    "Branch_or_ATM Location": ""
+                    "Branch_or_ATM_Location": ""
                 }
             }
         }
 
         # Required fields for each transaction
-        self.required_keys = {
+        cls.required_keys = {
             "Originator_Name",
             "Originator_Account_ID",
             "Originator_Customer_ID",
@@ -568,19 +568,19 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
             "Trxn_Channel",
             "Trxn_Date",
             "Trxn_Amount",
-            "Branch_or_ATM Location"
+            "Branch_or_ATM_Location"
         }
 
-        self.summary_prompt = self.agent_config.get("summary_prompt") 
+        cls.summary_prompt = cls.agent_config.get("summary_prompt") 
         logging.info("Step 6: Read summary prompt for Transaction Generation Agent")   
 
         logging.info("Running Transaction Generation Agent with test message...")
         # Generate the final results for all tests to use
-        self.results = create_two_agent_chat(
-            self.sar_agent,
-            self.transaction_generation_agent,
-            self.test_message,
-            self.summary_prompt
+        cls.results = create_two_agent_chat(
+            cls.sar_agent,
+            cls.transaction_generation_agent,
+            cls.test_message,
+            cls.summary_prompt
         )
 
     def test_number_of_accounts_in_results(self):
@@ -632,6 +632,14 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                         expected_val,
                         f"Mismatch for field '{field_name}' in transaction {txn_id}."
                     )
+
+
+
+
+
+
+
+
 
 
 
