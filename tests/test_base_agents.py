@@ -503,9 +503,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         # Example test message we will reuse from instructions
         cls.test_message = """
         1) Narrative = {
-          "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
-                     John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
-                     John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"
+          "345723": {"Trxn_Set_1": "John deposited $5000 in Cash into Acct #345723 at the Main Road,NY Branch of Bank of America on Jan 4, 2024. John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"}
         }
         2) Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
         3) Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank"}
@@ -514,6 +512,8 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
              "Chase Bank": {"Dummy_001": "CUST_003"}
         }
         """
+
+
 
         # Expected Results
         cls.expected_trxns = {
