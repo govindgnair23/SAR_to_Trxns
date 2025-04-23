@@ -406,16 +406,18 @@ agents:
 
       a) Identify the transaction channel or product used (i.e. Trxn_Channel). This could be Wire, Cash, Checks or something similar. If this is missing, you can make a reasonable assumption.
 
-      b) Identify the entity receiving the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to Identify the Account ID of the account receiving the trxn (i.e. Beneficiary_Account_ID), the Customer ID corresponding to the account (i.e. Beneficiary_Customer_ID),the Beneficiary_Name which is the Individual Or Organization who is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
+      b) Note the key of the dictionary "Narratives". This should be the originator or beneficiary account of the trxns.
+
+      c) Identify the entity receiving the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to Identify the Account ID of the account receiving the trxn (i.e. Beneficiary_Account_ID), the Customer ID corresponding to the account (i.e. Beneficiary_Customer_ID),the Beneficiary_Name which is the Individual Or Organization who is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
       
-      c) Identify the entity originating the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to identify the Account ID of the account sending the trxn( i.e. Originator_Account_ID) , the Customer ID corresponding to the account (i.e. Originator_Customer_ID),the Individual Or Organization originating the transaction (i.e. Originator_Name).Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
+      d) Identify the entity originating the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to identify the Account ID of the account sending the trxn( i.e. Originator_Account_ID) , the Customer ID corresponding to the account (i.e. Originator_Customer_ID),the Individual Or Organization originating the transaction (i.e. Originator_Name).Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
 
 
-      d) Identify the date of the transaction (i.e. Trxn_Date). If this is missing, you can make reasonable assumptions.
+      e) Identify the date of the transaction (i.e. Trxn_Date). If this is missing, you can make reasonable assumptions.
 
-      e) Identify the amount of the transaction (i.e. Trxn_Amount)
+      f) Identify the amount of the transaction (i.e. Trxn_Amount)
 
-      f) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). If this is not specified, it can be considered missing.
+      g) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). If this is not specified, it can be considered missing.
 
       Ensure the following are extracted.
 
@@ -441,7 +443,7 @@ agents:
       Example 1:
       ----
 
-      Narrative = {"345723": {"Trxn_Set_1":"John deposited $5000 in Cash  on Jan 4,2024 and $7500 in Cash on Jan 7,2024 into Acct #345723 at the Main Road, NY Branch of Bank of America"}
+      Narratives = {"345723": {"Trxn_Set_1":"John deposited $5000 in Cash  on Jan 4,2024 and $7500 in Cash on Jan 7,2024 into Acct #345723 at the Main Road, NY Branch of Bank of America"}
      
 
       Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
@@ -458,15 +460,17 @@ agents:
 
       a) Both transactions are Cash deposts
 
-      b) Both transactions are deposited into Acct #345723. Acct #345723 belongs to John as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_001 from the dictionary FI_to_Acct_to_Cust.
+      b) The key of the Narratives dictionary is 345723. SO Acct #345723 should be the originator or beneficary of the trxn.
 
-      c) Both transactions are originated by John. Given this is a cash transaction and no Account ID specified from which the cash originates , the originator and benficary information can be assumed to be the same.
+      c) Both transactions are deposited into Acct #345723. Acct #345723 belongs to John as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_001 from the dictionary FI_to_Acct_to_Cust.
 
-      d) The Trxn Dates are 2024-01-04 and 2024-01-07 
+      d) Both transactions are originated by John. Given this is a cash transaction and no Account ID specified from which the cash originates , the originator and benficary information can be assumed to be the same.
 
-      e) The Trxn Amounts are $5,000 and $7,500
+      e) The Trxn Dates are 2024-01-04 and 2024-01-07 
 
-      f) The Branch where the cash was deposited was Main Road , NY
+      f) The Trxn Amounts are $5,000 and $7,500
+
+      g) The Branch where the cash was deposited was Main Road , NY
 
 
       Step 3) Ensure the number of transactions extracted in Step 2 are the same as that noted in Step 1. if this is not the case, go back to Step 2.
@@ -489,7 +493,7 @@ agents:
       Example 2:
 
       ---
-      Narrative = {"98765": {"Trxn_Set_1":"John sends 2 Wires  to Acme Inc's account at Bank of America  on Jan 1,2024 and Jan 8, 2024. The Wires were for $3000 and $7000. He also wrote a check. John also issued a check payable to Acme Inc in the amount of $4,000 on Jan 5, 2024”"}
+      Narratives = {"98765": {"Trxn_Set_1":"John sends 2 Wires  to Acme Inc's account at Bank of America  on Jan 1,2024 and Jan 8, 2024. The Wires were for $3000 and $7000. He also wrote a check. John also issued a check payable to Acme Inc in the amount of $4,000 on Jan 5, 2024”"}
   
 
       Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
@@ -506,15 +510,17 @@ agents:
 
       a) Two of the trxns ($3,000 on Jan 1, 2024 and $7000 on Jan 8,2024) are wires and one is a check($4000 on Jan 5, 2024)
 
-      b) All transactions are deposited into Acme Inc's Account.  Acct #98765 belongs to Acme Inc as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_002 from the dictionary FI_to_Acct_to_Cust.
+      b) The key of the Narratives dictionary is 98765. SO Acct #98765 should be the originator or beneficiary of the trxn.
 
-      c) All transactions are originated by John. From the information provided John has only one Acct #345723 from the dictionary Acct_to_Cust. It is at Bank of America from the dictionary Acct_to_FI. The customer ID corresponding to this Acct is CUST_001 from FI_to_Acct_to_Cust.
+      c) All transactions are deposited into Acme Inc's Account.  Acct #98765 belongs to Acme Inc as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_002 from the dictionary FI_to_Acct_to_Cust.
 
-      d) The Trxn Dates for the wires are 2024-01-01 and 2024-01-08 and the Trxn date for the check is 2024-01-05.
+      d) All transactions are originated by John. From the information provided John has only one Acct #345723 from the dictionary Acct_to_Cust. It is at Bank of America from the dictionary Acct_to_FI. The customer ID corresponding to this Acct is CUST_001 from FI_to_Acct_to_Cust.
 
-      e) The Trxn Amounts for the Wires are $3,000 and $7,000 while the Trxn Amount for the check is $4000.
+      e) The Trxn Dates for the wires are 2024-01-01 and 2024-01-08 and the Trxn date for the check is 2024-01-05.
 
-      f) No Branches or ATM Location is specified for these trxns.
+      f) The Trxn Amounts for the Wires are $3,000 and $7,000 while the Trxn Amount for the check is $4000.
+
+      g) No Branches or ATM Location is specified for these trxns.
 
 
       Step 3) Ensure the number of transactions extracted in Step 2 are the same as that noted in Step 1. if this is not the case, go back to Step 2.
@@ -544,7 +550,7 @@ agents:
 
       
     llm_config:
-      model: "gpt-4o-mini"
+      model: "gpt-4.1-mini"
     human_input_mode: "NEVER"
     code_execution_config: False
     description: |
@@ -586,11 +592,9 @@ agents:
 
       Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as a list. If this is missing, you can make a reasonable assumption.
 
-      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the 
-      Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
+      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
 
-      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating
-      the transaction.
+      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating the transaction.
 
       Step 5) Identify the first and last dates the transactions. If this is missing, you can make reasonable assumptions.
 
