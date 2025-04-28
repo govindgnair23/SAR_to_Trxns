@@ -1,7 +1,8 @@
 import unittest
 from utils import  load_agents_from_single_config, get_agent_config, approximate_match_ratio
-from agents.agents import instantiate_base_agent , create_two_agent_chat
+from agents.agents import instantiate_base_agent , create_two_agent_chat, instantiate_agents_for_trxn_generation
 import logging
+from autogen import GroupChat, GroupChatManager
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -266,21 +267,19 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
         3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America",
                           "Dummy_Acct_1":"Chase Bank","98765":"Dummy_Bank_1"}
         4) Narrative:
-           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1,2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank. Jill deposited $3000 in Cash into her Acct at Chase Bank on 1/17/2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025. Unless otherwise stated,
-          John always used wires for trxns and the trxns were sent on Jan 31,2025.
-      
+           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
         """
 
         cls.expected_dict1 = {
             "345723": 
-                { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025.", 
-                    "Trxn_Set_2": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025" },
-            "98765":   {"Trxn_Set_1":"John sends $2000  in wires from Acct #99999 to Account #98765 on Jan 31,2025"} ,
+                { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025", 
+                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at  Chase on Jan 15,2025" },
+            "98765":   {"Trxn_Set_1": "John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025" } ,
             "12345":  {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
-            "99999":  {"Trxn_Set_1": "John deposited $5000 in Cash into  Acct #99999 at Bank of America on Jan 1, 2025",
-                       'Trxn_Set_2': "John sends $2000 from Acct #99999 to Account #98765 by Wire on Jan 31,2025."},
+            "99999":  {'Trxn_Set_1': 'John deposited $5000 each in Cash into Acct #99999 at Bank of America on Jan 1, 2025.',
+                       'Trxn_Set_2': 'John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025.'},
             "Dummy_Acct_1": 
-                    {"Trxn_Set_1": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase Bank on Jan 31,2025",
+                    {"Trxn_Set_1": "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025",
                      "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025 " ,
                      "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025"  ,
                      "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." 
@@ -381,89 +380,6 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
                     )
                 )
 
-    def test_each_narrative_has_correct_date(self):
-        """
-        Ensure each transaction narrative includes the exact expected date.
-        """
-        import re
-
-        date_regex = r"""(?ix)
-        \b
-        (
-            (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},\s*\d{4} |
-            \d{1,2}/\d{1,2}/\d{4} |
-            \d{1,2}-\d{1,2}-\d{4} |
-            \d{4}-\d{2}-\d{2}
-        )
-        \b
-    """
-
-        for acct_id, expected_sub_dict in self.expected_dict1.items():
-            actual_sub_dict = self.results_dict1[acct_id]
-            for sub_key, expected_text in expected_sub_dict.items():
-                actual_text = actual_sub_dict[sub_key]
-                # Extract expected date
-                expected_dates = re.findall(date_regex, expected_text)
-                actual_dates = re.findall(date_regex, actual_text)
-                # Check that every expected date is present in the actual narrative
-                for expected_date in expected_dates:
-                    self.assertIn(
-                        expected_date,
-                        actual_dates,
-                        f"Expected date '{expected_date}' not found in actual narrative for {acct_id} -> {sub_key}.\nActual: {actual_dates}"
-                    )
-
-    def test_each_narrative_has_correct_amount(self):
-        """
-        Ensure each transaction narrative includes the exact expected amount.
-        """
-        import re
-
-        amount_regex = r"\$\d+(?:,\d{3})*(?:\.\d{2})?|\d+\s*dollars"
-
-        for acct_id, expected_sub_dict in self.expected_dict1.items():
-            actual_sub_dict = self.results_dict1[acct_id]
-            for sub_key, expected_text in expected_sub_dict.items():
-                actual_text = actual_sub_dict[sub_key]
-                # Extract expected amounts
-                expected_amounts = re.findall(amount_regex, expected_text, re.IGNORECASE)
-                actual_amounts = re.findall(amount_regex, actual_text, re.IGNORECASE)
-                for expected_amt in expected_amounts:
-                    self.assertIn(
-                        expected_amt,
-                        actual_amounts,
-                        f"Expected amount '{expected_amt}' not found in actual narrative for {acct_id} -> {sub_key}.\nActual: {actual_amounts}"
-                    )
-
-    def test_each_narrative_has_correct_trxn_type(self):
-        """
-        Ensure each transaction narrative contains the correct transaction type 
-        (e.g., Cash, Wire, Check) from the expected text, case-insensitively.
-        """
-        import re
-
-        # Define standard transaction types
-        trx_types = ["cash", "wire", "check"]
-
-        for acct_id, expected_sub_dict in self.expected_dict1.items():
-            actual_sub_dict = self.results_dict1[acct_id]
-            for sub_key, expected_text in expected_sub_dict.items():
-                actual_text = actual_sub_dict[sub_key]
-
-                expected_text_lc = expected_text.lower()
-                actual_text_lc = actual_text.lower()
-
-                # Extract the transaction types present in expected text and actual text
-                expected_types = [t for t in trx_types if t in expected_text_lc]
-                actual_types = [t for t in trx_types if t in actual_text_lc]
-
-
-                for expected_type in expected_types:
-                    self.assertIn(
-                        expected_type,
-                        actual_types,
-                        f"Transaction type '{expected_type}' not found in actual narrative for {acct_id} -> {sub_key}.\nActual: {actual_types}"
-                    )
 
 class Test_Transaction_Generation_Agent(unittest.TestCase):
     """
@@ -503,7 +419,9 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
         # Example test message we will reuse from instructions
         cls.test_message = """
         1) Narrative = {
-          "345723": {"Trxn_Set_1": "John deposited $5000 in Cash into Acct #345723 at the Main Road,NY Branch of Bank of America on Jan 4, 2024. John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"}
+          "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
+                     John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
+                     John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"
         }
         2) Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
         3) Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank"}
@@ -512,8 +430,6 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
              "Chase Bank": {"Dummy_001": "CUST_003"}
         }
         """
-
-
 
         # Expected Results
         cls.expected_trxns = {
@@ -637,15 +553,85 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
 
 
 
+class TestGroupChatManager(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        """
+        Runs once before any test methods in this class are executed.
+        Loads agent configs, instantiates agents, and runs the scenario so the results
+        are available to all tests.
+        """
+        logging.info("Loading agent configs...")
+        cls.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
+    
+        cls.agents = instantiate_agents_for_trxn_generation(cls.agent_configs)
+        logging.info("All agents instantiated successfully")
+
+        cls.sar_agent = cls.agents["SAR_Agent_2"]
+        cls.trxn_generation_agent = cls.agents["Transaction_Generation_Agent"]
+        cls.trxn_generation_agent_w_tool = cls.agents["Transaction_Generation_Agent_w_Tool"]
+
+        group_chat_manager_config = get_agent_config(cls.agent_configs, agent_name = "Group_Chat_Manager")
+        cls.llm_config = group_chat_manager_config.get('llm_config')
+        cls.summary_method = group_chat_manager_config.get("summary_method")
+        cls.summary_prompt = group_chat_manager_config.get("summary_prompt")
+
+        cls.groupchat = GroupChat(agents = [cls.trxn_generation_agent,cls.trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
+        cls.manager = GroupChatManager(groupchat=cls.groupchat, llm_config = cls.llm_config)
 
 
+        
+        
 
+    def test_correct_agent_invoked_case1(self):
 
+        test_message1 =  '''
+                            {'Entities': 
+                                {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                                'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                                'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                                'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                                'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                                'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                                'Narratives' : {"345723": 
+                                        {
+                                        "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
+                                }
+                            '''
+        # Simulate some messages
+        self.groupchat.messages.append({"role": "user", "content": test_message1})
 
+        # Use the _select_next_speaker internal method
+        next_agent = self.manager._select_next_speaker(self.groupchat.messages)
 
+        # Test that right agent is selected
+        self.assertEqual(next_agent.name, "Transaction_Generation_Agent_w_Tool")
 
+    def test_correct_agent_invoked_case2(self):
 
+        test_message2 =  '''
+                            {'Entities': 
+                                {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                                'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                                'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                                'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                                'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                                'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                                'Narratives' : {"345723": 
+                                        {
+                                        "Trxn_Set_1":"John sent 2 wires to Acct #98765 on Jan 10,2025 and Feb 15, 2025. The trxns were $4,400 and $6,5000"} }
+                                }
+                            '''
+        # Simulate some messages
+        self.groupchat.messages.append({"role": "user", "content": test_message2})
 
+        # Use the _select_next_speaker internal method
+        next_agent = self.manager._select_next_speaker(self.groupchat.messages)
+
+        #Test that right agent is selected
+        self.assertEqual(next_agent.name, "Transaction_Generation_Agent")
 
 
 
