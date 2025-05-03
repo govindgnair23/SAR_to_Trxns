@@ -4,6 +4,7 @@ from agents.agents import instantiate_base_agent , create_two_agent_chat, instan
 import logging
 from autogen import GroupChat, GroupChatManager
 
+
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -550,9 +551,6 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                     )
 
 
-
-
-
 class TestGroupChatManager(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -571,6 +569,22 @@ class TestGroupChatManager(unittest.TestCase):
         cls.trxn_generation_agent = cls.agents["Transaction_Generation_Agent"]
         cls.trxn_generation_agent_w_tool = cls.agents["Transaction_Generation_Agent_w_Tool"]
 
+        # Stub transaction agents to immediately reply with their own name
+        def _register_name_spy(agent):
+            def name_spy(recipient, messages, sender, config):
+                # Short-circuit and return the agent's name
+                return True, agent.name
+            agent.register_reply(
+                trigger=lambda sender: True,
+                reply_func=name_spy,
+                position=0,
+                config=None
+            )
+
+        # Apply stubs
+        _register_name_spy(cls.trxn_generation_agent_w_tool)
+        _register_name_spy(cls.trxn_generation_agent)
+
         group_chat_manager_config = get_agent_config(cls.agent_configs, agent_name = "Group_Chat_Manager")
         cls.llm_config = group_chat_manager_config.get('llm_config')
         cls.summary_method = group_chat_manager_config.get("summary_method")
@@ -579,6 +593,13 @@ class TestGroupChatManager(unittest.TestCase):
         cls.groupchat = GroupChat(agents = [cls.trxn_generation_agent,cls.trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
         cls.manager = GroupChatManager(groupchat=cls.groupchat, llm_config = cls.llm_config)
 
+        
+
+
+    def setUp(self):
+        """Reset the last speaker before each test to ensure clean state."""
+        # Reset the internal last_speaker backing attribute since the property is read-only
+        self.manager._last_speaker = None
 
         
         
@@ -599,14 +620,16 @@ class TestGroupChatManager(unittest.TestCase):
                                         "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
                                 }
                             '''
-        # Simulate some messages
-        self.groupchat.messages.append({"role": "user", "content": test_message1})
-
-        # Use the _select_next_speaker internal method
-        next_agent = self.manager._select_next_speaker(self.groupchat.messages)
-
+        
+        chat_results = self.sar_agent.initiate_chat(
+                        self.manager,
+                        message = test_message1,
+                        summary_method= self.summary_method,
+                        summary_args = {
+                            "summary_prompt":self.summary_prompt
+                        } )
         # Test that right agent is selected
-        self.assertEqual(next_agent.name, "Transaction_Generation_Agent_w_Tool")
+        self.assertEqual(self.manager.last_speaker.name, "Transaction_Generation_Agent_w_Tool")
 
     def test_correct_agent_invoked_case2(self):
 
@@ -624,14 +647,18 @@ class TestGroupChatManager(unittest.TestCase):
                                         "Trxn_Set_1":"John sent 2 wires to Acct #98765 on Jan 10,2025 and Feb 15, 2025. The trxns were $4,400 and $6,5000"} }
                                 }
                             '''
-        # Simulate some messages
-        self.groupchat.messages.append({"role": "user", "content": test_message2})
+        chat_results = self.sar_agent.initiate_chat(
+                        self.manager,
+                        message = test_message2,
+                        summary_method= self.summary_method,
+                        summary_args = {
+                            "summary_prompt":self.summary_prompt
+                        } )
+        # Test that right agent is selected
+        self.assertEqual(self.manager.last_speaker.name, "Transaction_Generation_Agent")
 
-        # Use the _select_next_speaker internal method
-        next_agent = self.manager._select_next_speaker(self.groupchat.messages)
-
-        #Test that right agent is selected
-        self.assertEqual(next_agent.name, "Transaction_Generation_Agent")
+       
+        
 
 
 
