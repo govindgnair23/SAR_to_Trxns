@@ -154,7 +154,7 @@ def compare_sar_details(
     narrative_rows = []
 
     for idx, (gt_sar, pred_sar) in enumerate(zip(ground_truth_sars, predicted_sars)):
-        logging(f"Evaluating SAR {idx+1}/{len(ground_truth_sars)}...")
+        logging.info(f"Evaluating SAR {idx+1}/{len(ground_truth_sars)}...")
 
         # Instead of generating predictions here (e.g., run_agentic_workflow),
         # we assume pred_sar already contains all relevant predicted data.

@@ -19,7 +19,7 @@ class SAR:
                  gold_narrative: Dict[str,str]
                  ):
         self.sar_name = sar_name
-        self.sar_narrative = sar_narrative,
+        self.sar_narrative = sar_narrative
         self.gold_entities = gold_entities
         self.gold_account_ids = gold_account_ids
         self.gold_acct_to_fi = gold_acct_to_fi
