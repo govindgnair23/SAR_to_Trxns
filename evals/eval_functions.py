@@ -95,14 +95,13 @@ def evaluate_nested_mapping(pred_dict, gold_dict):
 def count_transaction_sets(transactions_dict):
     """
     Counts the total number of transaction sets in the provided dictionary.
-    If an account's value is a dictionary, we count each 'Trxn_Set_*' entry.
-    If an account's value is a single string, we treat it as one transaction set.
+    Only counts keys matching the pattern 'Trxn_Set_'.
     """
     total_count = 0
-    for _, value in transactions_dict.items():
+    for value in transactions_dict.values():
         if isinstance(value, dict):
-            # Count how many transaction set entries there are
-            total_count += len(value)
+            # Count all sub-keys
+            total_count += len(value.keys())
         else:
             # It's a single narrative string for that account
             total_count += 1

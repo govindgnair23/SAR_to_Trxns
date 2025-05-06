@@ -29,7 +29,7 @@ if __name__ == "__main__":
     
     predicted_sar_details = []
     for idx, sar in enumerate(sars):
-        logging.info(f"Getting Predictions for SAR {idx+1}/{len(sars)}...")
+        logging.info(f"Getting Predictions for SAR {sar.sar_name}...")
         # Run the agent workflow
         pred_output = run_agentic_workflow1(sar.sar_narrative, config_file)
         predicted_sar_details.append(pred_output)

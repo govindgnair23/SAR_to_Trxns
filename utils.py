@@ -16,7 +16,7 @@ def read_data(train = True):
     #Read in all training SAR data
     
     sars = []
-    for filename in os.listdir("./data/input"):
+    for filename in sorted(os.listdir("./data/input")):
         if 'train' in filename and filename.endswith('.txt'):
             file_path = os.path.join("./data/input", filename)
             with open(file_path,'r') as file:

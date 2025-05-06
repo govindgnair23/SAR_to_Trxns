@@ -381,3 +381,7 @@ expected_trxns = {
           "N_trxns": 200}
     }
 }
+
+sar1 = sars[0]
+print(sar1.sar_name)
+print(sar1.sar_narrative)

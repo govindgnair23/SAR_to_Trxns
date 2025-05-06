@@ -34,15 +34,15 @@ if __name__ == "__main__":
     # Get predicted trxns for each sar extract   
     sar_trxn_metrics = []
     for idx, sar in enumerate(sars):
-        sar_name = sar.sar_name
-        logging.info(f"Getting Predictions for SAR {idx+1}/{len(sars)}...")
+        
+        logging.info(f"Getting Predictions for SAR {sar.sar_name}...")
         # print(f"sar_{idx}: \n {sar.get_sar_extract()}")
 
         # Run the agent workflow
         pred_output = run_agentic_workflow2(sar.get_sar_extract(), config_file)
         #pred_output = pd.read_csv("./data/output/results_trxn_metrics_20250412_021639.csv")
 
-        logging.info(f"Evaluating Predictions for SAR {idx+1}/{len(sars)}...")
+        logging.info(f"Evaluating Predictions for SAR {sar.sar_name}...")
        
         trxn_metrics = compare_trxns(pred_output,expected_trxns)
         sar_trxn_metrics.append(trxn_metrics)
