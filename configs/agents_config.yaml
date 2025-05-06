@@ -65,7 +65,7 @@ agents:
 
       Acct_to_Cust = {"345723": "John,"Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
     llm_config:
-      model: "gpt-4o-mini"
+      model: "gpt-4.1-mini"
     human_input_mode: "NEVER"
     max_turns: 1
     summary_method: "reflection_with_llm"
