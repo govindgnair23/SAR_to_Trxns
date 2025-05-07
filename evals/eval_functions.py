@@ -199,13 +199,13 @@ def compare_sar_details(
 
         # ===== Check that narratives are extracted for expected accounts =====
         accts_w_narrative_metrics = evaluate_dict_keys(
-            pred_sar.get("Narrative", {}),
+            pred_sar.get("Narratives", {}),
             gt_sar.gold_narrative
         )
 
         # ===== Evaluate expected number of transaction sets =====
         trxn_set_metrics = evaluate_transaction_sets(
-            pred_sar.get("Narrative", {}),
+            pred_sar.get("Narratives", {}),
             gt_sar.gold_narrative
         )
 
@@ -253,7 +253,7 @@ def compare_sar_details(
 
         # ----- Evaluate narrative similarity -----
         gold_narr = concatenate_trxn_sets(gt_sar.gold_narrative)
-        pred_narr = concatenate_trxn_sets(pred_sar.get("Narrative", {}))
+        pred_narr = concatenate_trxn_sets(pred_sar.get("Narratives", {}))
         all_accts = set(gold_narr.keys()) | set(pred_narr.keys())
 
         for acct_id in all_accts:
