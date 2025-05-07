@@ -1,5 +1,5 @@
 from autogen import GroupChat, GroupChatManager
-from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df,generate_dynamic_output_file_name , write_data_to_file
+from utils import load_agents_from_single_config , get_agent_config, split_dictionary_into_subnarratives,convert_trxn_dict_to_df,generate_dynamic_output_file_name , write_data_to_file, normalize_dict
 from agents.agents import instantiate_all_base_agents, instantiate_agents_for_trxn_generation
 from autogen import Cache
 from typing import  Dict, Any, List
@@ -96,6 +96,10 @@ def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
 
     # Combine results from first agentic workflow
     results = {**results_dict0,**results_dict1,**results_dict2}
+    logging.info("Results  from agents aggrgated into a single dictionary")
+
+    results = normalize_dict(results)
+    logging.info("Results normalized to remove unexpected characters")
 
     #Write output file for later reuse or verification
     output_file = generate_dynamic_output_file_name(filename="entity_metrics",output_file_type="json",
