@@ -8,6 +8,9 @@ from difflib import SequenceMatcher
 import autogen
 from datetime import datetime
 import pandas as pd
+import re
+import unicodedata
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -16,13 +19,16 @@ def read_data(train = True):
     #Read in all training SAR data
     
     sars = []
-    for filename in sorted(os.listdir("./data/input")):
-        if 'train' in filename and filename.endswith('.txt'):
-            file_path = os.path.join("./data/input", filename)
-            with open(file_path,'r') as file:
-                content = file.read()
-                logging.info(f" Read '{filename}' ")
-                sars.append(content)
+    # Gather only training files
+    files = [f for f in os.listdir("./data/input") if 'train' in f and f.endswith('.txt')]
+    # Sort files by the numeric suffix (e.g., 'sar_train_04.txt' -> 4)
+    files.sort(key=lambda x: int(re.search(r'(\d+)', x).group()))
+    for filename in files:
+        file_path = os.path.join("./data/input", filename)
+        with open(file_path,'r') as file:
+            content = file.read()
+            logging.info(f" Read '{filename}' ")
+            sars.append(content)
 
     return sars
 
@@ -388,3 +394,41 @@ def convert_trxn_dict_to_df(i:int,trxn_dict:dict) -> pd.DataFrame:
     column_order = ['Transaction_Set', 'Account_ID'] + [col for col in df.columns if col not in ['Transaction_Set', 'Account_ID']]
     df = df[column_order]
     return df
+
+
+##Functions to normalize string output from LLM to regular ASCII
+
+def normalize_entity(text: str) -> str:
+    # 1. Unicode compatibility fold
+    text = unicodedata.normalize('NFKC', text)
+    # 2. Strip diacritics (café → cafe)
+    text = ''.join(ch for ch in unicodedata.normalize('NFKD', text)
+                   if not unicodedata.combining(ch))
+    # 3. Canonicalize punctuation
+    reps = {
+        '\u2018':"'", '\u2019':"'",  # curly single quotes
+        '\u201c':'"', '\u201d':'"',  # curly double quotes
+        '\u2013':'-', '\u2014':'-',  # en/em dashes
+        '\u2026':'...',              # ellipsis
+        '\u00A0':' ', '\u200B':'',   # non-breaking & zero-width spaces
+    }
+    for orig, repl in reps.items():
+        text = text.replace(orig, repl)
+    # 4. Remove control/nonprintables
+    text = ''.join(ch for ch in text if unicodedata.category(ch)[0] != 'C')
+    # 5. Normalize thousands separators in numbers
+    text = re.sub(r'(?<=\d),(?=\d{3}\b)', '', text)
+    # 6. Collapse whitespace and trim,
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def normalize_dict(obj: Any) -> Any:
+    if isinstance(obj, str):
+        return normalize_entity(obj)
+    elif isinstance(obj, dict):
+        return { key: normalize_dict(val) for key, val in obj.items() }
+    elif isinstance(obj, list):
+        return [ normalize_dict(item) for item in obj ]
+    else:
+        return obj  # leave ints, floats, bools, None untouched
+
