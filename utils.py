@@ -12,8 +12,8 @@ import re
 import unicodedata
 from typing import Any
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logger
+logger = logging.getLogger(__name__)
 
 def read_data(train = True):
     #Read in all training SAR data
@@ -27,7 +27,7 @@ def read_data(train = True):
         file_path = os.path.join("./data/input", filename)
         with open(file_path,'r') as file:
             content = file.read()
-            logging.info(f" Read '{filename}' ")
+            logger.info(f" Read '{filename}' ")
             sars.append(content)
 
     return sars
@@ -130,16 +130,16 @@ def load_single_agent_config(config_file, agent_name):
             if agent_name not in agents:
                 raise KeyError(f"Agent '{agent_name}' not found in configuration.")
             agent_config = agents[agent_name]
-            logging.info(f"Loaded configuration for agent '{agent_name}' from {config_file}.")
+            logger.info(f"Loaded configuration for agent '{agent_name}' from {config_file}.")
             return agent_config
     except FileNotFoundError:
-        logging.error(f"Configuration file {config_file} not found.")
+        logger.error(f"Configuration file {config_file} not found.")
         raise
     except yaml.YAMLError as exc:
-        logging.error(f"Error parsing YAML file {config_file}: {exc}")
+        logger.error(f"Error parsing YAML file {config_file}: {exc}")
         raise
     except KeyError as ke:
-        logging.error(ke)
+        logger.error(ke)
         raise
 
 def get_agent_config(agent_configs, agent_name):
@@ -158,7 +158,7 @@ def get_agent_config(agent_configs, agent_name):
     """
     for agent_config in agent_configs:
         if agent_config.get('name') == agent_name:
-            logging.info(f"Found configuration for agent '{agent_name}'.")
+            logger.info(f"Found configuration for agent '{agent_name}'.")
             return agent_config
     raise ValueError(f"Agent '{agent_name}' not found.")   
 
@@ -172,7 +172,7 @@ def write_data_to_file(data, file_path):
     if not os.path.exists(directory):
         try:
             os.makedirs(directory)
-            print(f"Created directory: {directory}")
+            logger.info(f"Created directory: {directory}")
         except OSError as e:
             raise OSError(f"Failed to create directory {directory}: {e}") from e
 
@@ -180,10 +180,10 @@ def write_data_to_file(data, file_path):
         if isinstance(data, dict):
             with open(file_path, 'w', encoding='utf-8') as json_file:
                 json.dump(data, json_file, indent=4)
-                print(f"Successfully wrote JSON data to {file_path}")
+                logger.info(f"Successfully wrote JSON data to {file_path}")
         elif isinstance(data, pd.DataFrame):
             data.to_csv(file_path, index=False)
-            print(f"Successfully wrote DataFrame to CSV file at {file_path}")
+            logger.info(f"Successfully wrote DataFrame to CSV file at {file_path}")
         else:
             raise TypeError("Unsupported data type. Only dict and pandas DataFrame are supported.")
     except Exception as e:

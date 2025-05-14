@@ -5,10 +5,22 @@ from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
 from dotenv import load_dotenv
 import os
 import logging
+# Configure logging to both file and console
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
+# File handler
+output_log_file = generate_dynamic_output_file_name('main', output_file_type="log", output_folder="./logs")
+file_handler = logging.FileHandler(output_log_file, mode='w')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
-logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 
 
@@ -20,10 +32,13 @@ def main(filename):
     
     #train_sars = read_data(train=True)
     #Read specific SAR
+    
     message = read_file(filename)
+    logging.info("Read SAR")
 
     # Run first agentic workflow to extract entities
     results1 = run_agentic_workflow1(message,config_file)
+    logging.info("Ran first workflow to extract entities and narratives")
 
     #Loop through the narrative for each account and generate transactions - To be Done
     ###For now just pick one account for testing purposes.
@@ -47,6 +62,7 @@ def main(filename):
 
     # Run second agentic worklfow to extract transactions
     results2 = run_agentic_workflow2(results1,config_file)
+    logging.info("Ran second workflow to generate transactions")
     
     
 

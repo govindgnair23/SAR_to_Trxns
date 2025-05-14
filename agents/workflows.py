@@ -9,7 +9,7 @@ import json
 import pandas as pd
 import copy
 
-logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
     '''
@@ -19,6 +19,7 @@ def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
     '''
 
     assert sar_text and sar_text.strip(), "SAR narrative must not be empty or whitespace only"
+    logger.info(f"Starting run_agentic_workflow1 for SAR text (length={len(sar_text)})")
 
     agent_configs = load_agents_from_single_config(config_file)
     agents = instantiate_all_base_agents(agent_configs)
@@ -107,6 +108,7 @@ def run_agentic_workflow1(sar_text: str,config_file:str) -> Dict[str, Any]:
     
     write_data_to_file(results,output_file)
     
+    logger.info("Finished run_agentic_workflow1")
     return results
 
 
@@ -116,6 +118,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     agents = instantiate_agents_for_trxn_generation(agent_configs)
     n_agents = len(agents)
     assert len(agents)==3 , f"The 3 agents required for trxn generation have not been passed. Only {n_agents} agents have been created"
+    logger.info(f"Starting run_agentic_workflow2 with input keys={list(input.keys())}")
 
     logging.info("All agents instantiated successfully")
     sar_agent = agents["SAR_Agent_2"]
@@ -186,4 +189,5 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
                                                     output_folder="./data/output")
     write_data_to_file(trxns_df_final,output_file)
 
+    logger.info("Finished run_agentic_workflow2")
     return  trxns_df_final
