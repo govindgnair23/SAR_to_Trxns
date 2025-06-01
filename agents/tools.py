@@ -48,3 +48,87 @@ def generate_transactions(
                               "Branch_or_ATM_Location": Branch_or_ATM_Location }
 
     return trxns
+
+generate_transactions_schema = {
+    "name": "generate_transactions",
+    "description": "Generate a sequence of transactions based on the given parameters.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "Originator_Name": {
+                "type": "string",
+                "description": "Entity or Customer originating the transactions"
+            },
+            "Originator_Account_ID": {
+                "type": "string",
+                "description": "Account of Entity or Customer originating the transactions"
+            },
+            "Originator_Customer_ID": {
+                "type": "string",
+                "description": "Customer ID of Entity or Customer originating the transactions"
+            },
+            "Beneficiary_Name": {
+                "type": "string",
+                "description": "Entity or Customer receiving the transactions"
+            },
+            "Beneficiary_Account_ID": {
+                "type": "string",
+                "description": "Account of Entity or Customer receiving the transactions"
+            },
+            "Beneficiary_Customer_ID": {
+                "type": "string",
+                "description": "Customer ID of Entity or Customer receiving the transactions"
+            },
+            "Trxn_Channel": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": ["Wire", "Cash", "Check", "Money Order"]
+                },
+                "description": "Transaction channels used for each transaction"
+            },
+            "Start_Date": {
+                "type": "string",
+                "format": "date",
+                "description": "Date of the first transaction (YYYY-MM-DD)"
+            },
+            "End_Date": {
+                "type": "string",
+                "format": "date",
+                "description": "Date of the last transaction (YYYY-MM-DD)"
+            },
+            "Min_Ind_Trxn_Amt": {
+                "type": "number",
+                "description": "Minimum individual transaction amount"
+            },
+            "Max_Ind_Trxn_Amt": {
+                "type": "number",
+                "description": "Maximum individual transaction amount"
+            },
+            "Branch_or_ATM_Location": {
+                "type": "string",
+                "description": "Branch or ATM location for transactions"
+            },
+            "N_transactions": {
+                "type": "integer",
+                "description": "Total number of transactions to generate"
+            }
+        },
+        "required": [
+            "Originator_Name",
+            "Originator_Account_ID",
+            "Originator_Customer_ID",
+            "Beneficiary_Name",
+            "Beneficiary_Account_ID",
+            "Beneficiary_Customer_ID",
+            "Trxn_Channel",
+            "Start_Date",
+            "End_Date",
+            "Min_Ind_Trxn_Amt",
+            "Max_Ind_Trxn_Amt",
+            "Branch_or_ATM_Location",
+            "N_transactions"
+        ],
+        "additionalProperties": False
+    }
+}

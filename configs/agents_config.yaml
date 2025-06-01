@@ -573,12 +573,14 @@ agents:
 
   - name: "Transaction_Generation_Agent_w_Tool"
     instructions: |
-      You are an AI Agent tasked with synthesizing transactions from a narrative you are provided. Your strength is synthesizing transactions when a larger number of transactions are made between two entities  when a range of trxn amounts and dates are specified. When invoked, use the provided function to generate transactions.
+      You are an AI Agent tasked with helping synthesize transactions from a narrative .
+      When invoked, use the narrative  to extract the arguments required to use the function provided
+      to generate transactions.
 
       You will have the following four pieces of information.
 
       
-      1) A Dictionary called Narrative with Account IDs as key  and  narratives describing transactions made by that account as the values. </n>
+      1) A  Nested Dictionary called Narrative with Account IDs, Trxn_Set_ID as inner key and  narrative describing transactions made by that account as the values. </n>
       2) The mapping between Individuals and Organizations referenced in the narrative to Account IDs, given by the dictionary Acct_to_Cust. Note, account IDs starting with the prefix "Dummy_" 
          are placeholders for account IDs that are referenced but have not been explicitly identified in the narrative. </n>
       3) The mapping between Financial Institutions to Account IDs given by the dictionary Acct_to_FI. If the Financial institution for certain accounts are not specified in the narrative,
@@ -591,11 +593,13 @@ agents:
 
       Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as a list. If this is missing, you can make a reasonable assumption.
 
-      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
+      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the 
+      Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
 
-      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating the transaction.
+      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating
+      the transaction.
 
-      Step 5) Identify the first and last dates the transactions. If this is missing, you can make reasonable assumptions.
+      Step 5) Identify the first and last dates the transactions. If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
 
       Step 6) Identify the minimum and maximum amount of the transactions.
 
@@ -612,12 +616,31 @@ agents:
       -Beneficiary_Customer_ID
       -Trxn_Channel or List of Trxn Channels
       -First Trxn_Date and Last Trxn Date in yyyy-mm-dd format
-      -Min Trxn_Amount and Max Trxn_Amount
+      -Min_Ind_Trxn_Amount and Max_Ind_Trxn_Amount
       -Branch or ATM Location or List of such locations
 
       If any information is missing and can't be reasonably assumed, use an empty string "" to indicate it is missing.
+    
 
-      Step 9) Call the function `generate_transactions`  by passing the specified number of transactions and attributes collected above..
+      Step 9) Extract the above information as a JSON file with the keys listed below. Do not include any other comments 
+      or information. 
+
+      -Originator_Name
+      -Originator_Account_ID
+      -Originator_Customer_ID
+      -Beneficiary_Name
+      -Beneficiary_Account_ID
+      -Beneficiary_Customer_ID
+      -Trxn_Channel 
+      -Start_Date
+      -End_Date
+      -Min_Ind_Trxn_Amount
+      -Max_Ind_Trxn_Amount
+      -Branch_or_ATM_Location 
+      -N_transactions
+
+
+      Step 10) Call the function generate_transactions with the information above and return its arguments only.
 
       An example is given below, demarcated by the delimiter ----..
 
@@ -643,16 +666,32 @@ agents:
 
         Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
                 
-        Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024.
+        Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024. In yyyy-mm-dd format, they are 2024-01-01 and 2024-07-04.
 
-        Step 6) The mininmum and maximum transaction amount is $10,000
+        Step 6) The minimum and maximum transaction amount is $10,000
 
         Step 7) Since the transactions are Wire or Chek transactions, Branch or ATM Location can be considered Missing. 
         
         Step 8) All the required attributes have been gathered.
 
-        Step 9) Call the function generate_transactions with the collected arguments. Return results as a Python Dictionary only. Do not include any
-        other comments.
+        Step 9) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
+            {
+                "Originator_Name" : "John",
+                "Originator_Account_ID": "345723",
+                "Originator_Customer_ID": "CUST_001",
+                "Beneficiary_Name" : "Jill",
+                "Beneficiary_Account_ID": "Dummy_001",
+                "Beneficiary_Customer_ID": "CUST_003",
+                "Trxn_Channel": ["Wire","Check"],
+                "Start_Date": "2024-01-01",
+                "End_Date": "2024-07-04",
+                "Min_Ind_Trxn_Amt": 10000,
+                "Max_Ind_Trxn_Amt": 10000,
+                "Branch_or_ATM_Location": "",
+                "N_transactions":10
+            }
+
+      Step 10) Call the function generate_transactions with the arguments identified in Step 9 and return its arguments only.
 
       ----
     overwrite_instructions: True
@@ -661,32 +700,14 @@ agents:
        An AI Assistant who is good at generating a large number of transactions on just a single date with just a single trxn amount OR on a range of dates with a range of trxn amounts.
     llm_config:
       model: "gpt-4o-mini"
+      temperature: 0
+      response_format:
+        type: json_object
     
-  - name: "SAR_Agent_2"
-    system_message: "Share the SAR extract given so that other agents can generate transactions "
-    code_execution_config:
-      last_n_messages: 2
-      work_dir: "temp"
-      use_docker: False
-    human_input_mode: "NEVER"
+  - name: "Router_Agent"
+    description: |
+      An Agent that routes a user request to the appropriate agent from the list of agents it is initialized with.
     llm_config:
       model: "gpt-4o-mini"
+      temperature: 0
 
-  - name: "Group_Chat_Manager"
-    llm_config:
-      model: "gpt-4o"
-    summary_method : "reflection_with_llm"
-    summary_prompt: |
-        Return the synthesized transactions in the following format as a Python Dictionary only.
-                                 { <Acct_ID> : {<Trxn_ID> : 
-                                                    {"Originator_Name": <Originator_Name>,
-                                                     "Originator_Account_ID": <Originator_Account_ID>, 
-                                                     "Originator_Customer_ID": <Originator_Customer_ID>,
-                                                     "Beneficiary_Name": <Beneficiary_Name>,
-                                                     "Beneficiary_Account_ID":<Beneficiary_Account_ID>, 
-                                                     "Beneficiary_Customer_ID": <Beneficiary_Customer_ID> ,
-                                                     "Trxn_Channel": <Trxn_Channel>, 
-                                                     "Trxn_Date":<Trxn_Date>, 
-                                                     "Trxn_Amount":<Trxn_Amount>, 
-                                                     "Branch_or_ATM_Location": <Branch_or_ATM_Location> }
-   

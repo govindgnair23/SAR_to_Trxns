@@ -1,7 +1,10 @@
 import openai
 from utils import get_agent_config
 import json
-
+from typing import List
+import logging
+# Configure logging
+logger = logging.getLogger(__name__)
 
 def choose_agent(narrative: str,agent_configs:dict) -> str:
     """
@@ -27,63 +30,16 @@ def choose_agent(narrative: str,agent_configs:dict) -> str:
     )
     return resp.choices[0].message.content.strip()
 
-def generate_transactions_for(narrative: dict, agents: dict):
-    narrative_ = json.dumps(narrative["Narratives"],indent =2)
-    choice = choose_agent(narrative_)
-    print(choice)
-    print(choice=="Tool_Agent")
-    msgs = [{"role": "user", "content": narrative}]
-    if choice == "Simple_Agent":
-        # simple agent just replies normally (no function)
-        trxn_generation_agent =  agents["Trxn_Generation_Agent"]
-        chat = trxn_generation_agent.generate_reply(messages=msgs,sender=None)
-        return chat
-    elif choice == "Tool_Agent":
-        # tool agent calls your Python generate_transactions directly
-        chat = trxn_generation_agent_gpt.generate_reply(
-                    messages=msgs,
-                    sender=None,
-                    function_call="generate_transactions" 
-        )
-        return chat
-    else:
-        raise RuntimeError(f"Router chose unknown agent: {choice}")
 
 
-def build_router_prompt(agents:list):
-    """
-    agents: list of objects with .name and .description attributes
-    """
-    num_agents = len(agents)
 
-    # 1) Header
-    header = (
-        f"You are a router who has to choose between {num_agents} agents "
-        f"whose skills are described below:\n\n"
-    )
 
-    # 2) Agent descriptions
-    descs = "\n\n".join(f"{a.name}: {a.description}" for a in agents)
-
-    # 3) Choice list
-    choices = "\n".join(f"- {a.name}" for a in agents)
-
-    # 4) Combine
-    prompt = (
-        header
-        + descs
-        + "\n\nDepending on which agent is most suitable, return exactly "
-          "and only one of:\n"
-        + choices
-        + "\n\nDo NOT return anything else (no quotes, no extra text)."
-    )
-    return prompt
-
-def make_router_schema(agent_names: list[str]) -> dict:
+def make_router_schema(agents: dict) -> dict:
     """
     Build a function schema whose `agent` property enum
     is exactly the list of agent_names.
     """
+    agent_names = list(agents.keys())
     return {
         "name": "choose_agent",
         "description": "Pick exactly one agent from the provided list",
@@ -99,3 +55,41 @@ def make_router_schema(agent_names: list[str]) -> dict:
             "additionalProperties": False
         }
     }
+
+def route_and_execute(agents:List,narrative:dict):
+    """
+    Function to take the narrative to be synthesized, pass it to the router agent, get the recommended agent 
+    and execute it to generate transactions
+    """
+
+     # Get just the narrative to pass to the router
+    narrative_ = narrative["Narratives"]
+
+    #Convert to text to pass to LLM
+    narrative_text = json.dumps(narrative_,indent =2)
+
+    #Get recommended agent from router
+    message = [{"role":"user","content":narrative_text}]
+    router_agent = agents["Router_Agent"]
+    chosen_agent_name = router_agent.generate_reply(message)
+    logger.info (f"Agent chosen is: {chosen_agent_name}")
+
+    chosen_agent = agents[chosen_agent_name]
+
+    #Convert full narrative back to a string
+    full_narrative = json.dumps(narrative,indent =2)
+    message = [{"role":"user","content":full_narrative}]
+
+    #Get the required response from the chosen agent
+    trxns = chosen_agent.generate_reply(message)
+
+    #If the agent returns a dictionary just return it
+    if isinstance(trxns,dict):
+        return trxns
+    else:
+        #If it returns a JSON convert to a dictionary and return it
+        try:
+            trxns_ = json.loads(trxns)
+            return trxns_
+        except json.JSONDecodeError:
+            print("Not a valid JSON")
