@@ -381,18 +381,29 @@ def convert_trxn_dict_to_df(i:int,trxn_dict:dict) -> pd.DataFrame:
     """
     flattened_data = []
 
-    for key, inner_dict in trxn_dict.items():
-        for transaction_id, transaction_details in inner_dict.items():
-            # Add the transaction ID and account ID to the details
-            transaction_details['Transaction_Set'] = i
-            transaction_details['Account_ID'] = key
-            flattened_data.append(transaction_details)
+    
+    for transaction_id, transaction_details in trxn_dict.items():
+        # Add the transaction ID and account ID to the details
+        transaction_details['Transaction_Set'] = i
+        #transaction_details['Account_ID'] = key
+        flattened_data.append(transaction_details)
 
     # Convert the flattened data to a DataFrame
     df = pd.DataFrame(flattened_data)
     # Reorder the columns to make  Transaction Set, Transaction_ID and Account_ID the first three columns
-    column_order = ['Transaction_Set', 'Account_ID'] + [col for col in df.columns if col not in ['Transaction_Set', 'Account_ID']]
+    #column_order = ['Transaction_Set', 'Account_ID'] + [col for col in df.columns if col not in ['Transaction_Set', 'Account_ID']]
+    column_order = ['Transaction_Set'] + [col for col in df.columns if col not in ['Transaction_Set']]
     df = df[column_order]
+    return df
+
+def convert_dict_to_df(i:int,nested_dict:dict):
+    """
+    Convert a nested dictionary into a pandas DataFrame, 
+    using each inner dictionary as a row.
+    """
+    df = pd.DataFrame.from_dict(nested_dict, orient='index')
+    df.reset_index(drop=True, inplace=True)  # Drop the original keys, if you only want the rows
+    df["Transaction_Set"] = i
     return df
 
 
