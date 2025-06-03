@@ -303,31 +303,31 @@ class TestWorkflow2(unittest.TestCase):
         cls.config_file = 'configs/agents_config.yaml' 
         #Use this to test outputs follow expected format.
         #cls.result1 = run_agentic_workflow2(cls.test_input1,cls.config_file)
-        cls.result2 = run_agentic_workflow2(cls.test_input2,cls.config_file)
+        #cls.result2 = run_agentic_workflow2(cls.test_input2,cls.config_file)
         # cls.result3 = run_agentic_workflow2(cls.test_input3,cls.config_file)
-        # cls.result4 = run_agentic_workflow2(cls.test_input4,cls.config_file)
+        cls.result4 = run_agentic_workflow2(cls.test_input4,cls.config_file)
 
     def test_result_is_dataframe(self):
         """
         Test that the output from the workflow is a valid Python DataFrame.
         """
         # self.assertIsInstance(self.result1, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
-        self.assertIsInstance(self.result2, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
+        #self.assertIsInstance(self.result2, pd.DataFrame, f"Expected result to be a dataframe but got {type(self.result2)}")
         # self.assertIsInstance(self.result3, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
-        # self.assertIsInstance(self.result4, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
+        self.assertIsInstance(self.result4, pd.DataFrame, f"Expected result to be a dataframe but got {type(self.result4)}")
 
 
 
     # def test_trxns_case1(self):
     #     assert_transaction_matches(self, self.result1, self.expected_results1)
 
-    def test_trxns_case2(self):
-        assert_transaction_matches(self, self.result2, self.expected_results2)
+    # def test_trxns_case2(self):
+    #     assert_transaction_matches(self, self.result2, self.expected_results2)
     
     # def test_trxns_case3(self):
     #     assert_transaction_matches(self, self.result3, self.expected_results3)
     
-    # def test_trxns_case4(self):
-    #     assert_transaction_matches(self, self.result4, self.expected_results4)
+    def test_trxns_case4(self):
+        assert_transaction_matches(self, self.result4, self.expected_results4)
 
  

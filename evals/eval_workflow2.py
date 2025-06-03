@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 config_file = 'configs/agents_config.yaml' 
-sar_narratives = read_data(train = True)  
+#sar_narratives = read_data(train = True)  
 
 
 if __name__ == "__main__":
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     root_logger.addHandler(console_handler)
 
     #Restrict to just first sar for testing
-    sars = sars[:1]
+    #sars = sars[:1]
     
     # Get predicted trxns for each sar extract   
     sar_trxn_metrics = []

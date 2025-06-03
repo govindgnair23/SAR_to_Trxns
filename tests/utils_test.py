@@ -28,7 +28,7 @@ def assert_transaction_matches(test_case: unittest.TestCase, actual_df: pd.DataF
     test_case.assertGreaterEqual(date_mask.sum() / len(actual_df), 0.9,
                                  "Less than 90% transactions in date range")
 
-    in_range_amt = actual_df["Trxn_Amount"].between(expected["Min_Ind_Amt"], expected["Max_Ind_Amt"])
+    in_range_amt = actual_df["Trxn_Amount"].between(expected["Min_Ind_Amt"], expected["Max_Ind_Amt"], inclusive="both")
     test_case.assertGreaterEqual(in_range_amt.sum() / len(actual_df), 0.9,
                                  "Less than 90% transactions in amount range")
 
