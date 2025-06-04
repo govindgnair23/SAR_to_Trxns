@@ -481,14 +481,12 @@ agents:
 
       Now the transactions can be combined into a Python Dictionary with a key being a Trxn ID staring from 1.
 
-      Trxns = {"345723": {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
-                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM_Location": "Main Road,NY"
-              },
+      Trxns =  {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001",
+                    "Beneficiary_Name": "John","Beneficiary_Account_ID":"345723","Beneficiary_Customer_ID":"CUST_001" ,
+                    "Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM_Location": "Main Road,NY"},
                 2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
-                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-07", "Trxn_Amount":7500, "Branch_or_ATM_Location": "Main Road,NY"
-              },
-              
-      }
+                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-07", "Trxn_Amount":7500, "Branch_or_ATM_Location": "Main Road,NY"}
+               }
       ----
       Example 2:
 
@@ -529,9 +527,10 @@ agents:
 
       Step 4) Return the transactions as a Python Dictionary with the key being a Trxn ID and value being the transaction attributes
 
-      Now the transactions can be combined into a Python Dictionary with a key being a Trxn ID staring from 1.
+      Now the transactions can be combined into a JSON with a key being a Trxn ID staring from 1.
 
-      Trxns = {"345723": {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
+      Trxns =  {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001",   
+                     "Beneficiary_Name":"Acme Inc","Beneficiary_Account_ID":"98765",
                   "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-01", "Trxn_Amount":3000, "Branch_or_ATM_Location": ""
                 },
                   2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
@@ -540,35 +539,36 @@ agents:
                 3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
                   "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-05", "Trxn_Amount":4000, "Branch_or_ATM_Location": ""
                 }
+               } 
                 
-        }
-
-
       ---
 
-      Return only the Python Dictionary. Do not include any additional comments.
+      Return only the  JSON. Do not include any additional comments.
 
       
     llm_config:
       model: "gpt-4.1-mini"
+      temperature: 0
+      response_format:
+        type: json_object
     human_input_mode: "NEVER"
     code_execution_config: False
     description: |
       An AI Assistant who is good at generating a small number of transactions,especially when the precise trxn amount and date of each trxn is known. Use only when two or more trxn amounts and dates are explicitly specified.
     summary_method: "reflection_with_llm"
     summary_prompt: |
-        Return the synthesized transactions in the following format as a Python Dictionary only. Do not include any other comments.
-                                 { <Acct_ID> : {<Trxn_ID> : 
-                                                    {"Originator_Name": <Originator_Name>,
-                                                     "Originator_Account_ID": <Originator_Account_ID>, 
-                                                     "Originator_Customer_ID": <Originator_Customer_ID>,
-                                                     "Beneficiary_Name": <Beneficiary_Name>,
-                                                     "Beneficiary_Account_ID":<Beneficiary_Account_ID>, 
-                                                     "Beneficiary_Customer_ID": <Beneficiary_Customer_ID> ,
-                                                     "Trxn_Channel": <Trxn_Channel>, 
-                                                     "Trxn_Date":<Trxn_Date>, 
-                                                     "Trxn_Amount":<Trxn_Amount>, 
-                                                     "Branch_or_ATM_Location": <Branch_or_ATM_Location> }
+        Return the synthesized transactions in the following format as a JSON only. Do not include any other comments.
+                                  {<Trxn_ID> : 
+                                          {"Originator_Name": <Originator_Name>,
+                                            "Originator_Account_ID": <Originator_Account_ID>, 
+                                            "Originator_Customer_ID": <Originator_Customer_ID>,
+                                            "Beneficiary_Name": <Beneficiary_Name>,
+                                            "Beneficiary_Account_ID":<Beneficiary_Account_ID>, 
+                                            "Beneficiary_Customer_ID": <Beneficiary_Customer_ID> ,
+                                            "Trxn_Channel": <Trxn_Channel>, 
+                                            "Trxn_Date":<Trxn_Date>, 
+                                            "Trxn_Amount":<Trxn_Amount>, 
+                                            "Branch_or_ATM_Location": <Branch_or_ATM_Location> }}
 
 
   - name: "Transaction_Generation_Agent_w_Tool"

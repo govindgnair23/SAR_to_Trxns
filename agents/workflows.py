@@ -131,7 +131,13 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     for i,sub_narrative in enumerate(sub_narratives): 
         
         results_dict = route_and_execute(agents,sub_narrative)
+        
+        output_file = generate_dynamic_output_file_name(filename="trxns_dict",output_file_type="json",
+                                                    output_folder="./data/output")
+        write_data_to_file(results_dict,output_file)
+
         logger.info(f"Results from  chosen Transaction Generation Agent for Sub narrative {i+1} has been generated")
+
         trxn_df = convert_dict_to_df(i+1,results_dict)
         trxn_df_list.append(trxn_df)
 

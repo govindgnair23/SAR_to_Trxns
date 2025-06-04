@@ -177,6 +177,17 @@ def write_data_to_file(data, file_path):
             raise OSError(f"Failed to create directory {directory}: {e}") from e
 
     try:
+        # If data is a JSON string, parse it into a Python object
+        if isinstance(data, str):
+            try:
+                parsed = json.loads(data)
+                data = parsed
+            except json.JSONDecodeError:
+                # If it's a plain string (not valid JSON), write as text
+                with open(file_path, 'w', encoding='utf-8') as text_file:
+                    text_file.write(data)
+                    logger.info(f"Successfully wrote text data to {file_path}")
+                return
         if isinstance(data, dict):
             with open(file_path, 'w', encoding='utf-8') as json_file:
                 json.dump(data, json_file, indent=4)
