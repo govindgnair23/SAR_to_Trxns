@@ -1,6 +1,0 @@
-,SAR_index,Individuals_precision,Individuals_recall,Individuals_f1,Organizations_precision,Organizations_recall,Organizations_f1,Financial_Institutions_precision,Financial_Institutions_recall,Financial_Institutions_f1,Account_IDs_precision,Account_IDs_recall,Account_IDs_f1,FI_to_Acct_precision,FI_to_Acct_recall,FI_to_Acct_f1,Acct_to_Cust_precision,Acct_to_Cust_recall,Acct_to_Cust_f1,FI_Acct_Cust_ID_precision,FI_Acct_Cust_ID_recall,FI_Acct_Cust_ID_f1,accts_in_narrative_precision,accts_in_narrative_recall,accts_in_narrative_f1,N_observed_trxn_sets,N_expected_trxn_sets
-0,1,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,4.0,4.0
-1,2,1.0,0.5,0.6666666666666666,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,2.0
-2,3,1.0,0.5,0.6666666666666666,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,3.0
-3,4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,5.0
-4,Average,0.75,0.5,0.5833333333333333,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,0.25,4.0,3.5
