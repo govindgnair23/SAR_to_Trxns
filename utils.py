@@ -414,7 +414,7 @@ def convert_dict_to_df(i:int,nested_dict:dict):
     """
     df = pd.DataFrame.from_dict(nested_dict, orient='index')
     df.reset_index(drop=True, inplace=True)  # Drop the original keys, if you only want the rows
-    df["Transaction_Set"] = i
+    #df["Transaction_Set"] = i
     return df
 
 

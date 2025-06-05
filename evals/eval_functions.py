@@ -284,7 +284,7 @@ def compare_sar_details(
 
 
 
-def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str, Any]]]) -> pd.DataFrame:
+def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Any]]) -> pd.DataFrame:
     """
     Compare actual transactions in `df` with expected transaction sets in `expected_trxns`.
     For each transaction set:
@@ -304,136 +304,134 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Dict[str
 
     results = []
 
-    for sar_id, trx_sets in expected_trxns.items():
-        for set_id, expected in trx_sets.items():
-            # Filter by Originator and Beneficiary
-            sub_df = df[
-                (df["Originator_Account_ID"] == expected["Originator_Account_ID"]) &
-                (df["Beneficiary_Account_ID"] == expected["Beneficiary_Account_ID"])
-            ]
+   
+    for set_id, expected in expected_trxns.items():
+        # Filter by Originator and Beneficiary
+        sub_df = df[
+            (df["Originator_Account_ID"] == expected["Originator_Account_ID"]) &
+            (df["Beneficiary_Account_ID"] == expected["Beneficiary_Account_ID"])
+        ]
 
-            if sub_df.empty:
-                # Nothing matches => fill defaults
-                results.append({
-                    "SAR ID": sar_id,
-                    "Trxn_Set_ID": set_id,
-                    "Amount_pct_diff": "",
-                    "Count_pct_diff": "",
-                    "N_trxns_in_date_range": "",
-                    "Missing_channels": "",
-                    "Extra_channels": "",
-                    "Channels_match": False,
-                    "Missing_locations": "",
-                    "Extra_locations": "",
-                    "Locations_match": False,
-                    "Perc_ind_amt_in_range": 0
-                })
-                continue
-
-            # -----------------------------------------------------
-            # 1. Amount & Count mismatch
-            # -----------------------------------------------------
-            expected_amount = float(expected["Total_Amount"])
-            expected_count = int(expected["N_trxns"])
-
-            # If 'Trxn_Amount' is entirely empty (all NaN), treat as 0
-            if sub_df["Trxn_Amount"].dropna().empty:
-                actual_amount = 0
-                actual_count = 0
-            else:
-                actual_amount = sub_df["Trxn_Amount"].sum()
-                actual_count = len(sub_df)
-
-            # Amount % diff
-            if expected_amount == 0:
-                amount_pct_diff = 0.0 if actual_amount == 0 else 100.0
-            else:
-                amount_pct_diff = ((actual_amount - expected_amount) / expected_amount) * 100.0
-
-            # Count % diff
-            if expected_count == 0:
-                count_pct_diff = 0.0 if actual_count == 0 else 100.0
-            else:
-                count_pct_diff = ((actual_count - expected_count) / expected_count) * 100.0
-
-            # -----------------------------------------------------
-            # 2. Date Range fraction
-            # -----------------------------------------------------
-            if sub_df["Trxn_Date"].dropna().empty:
-                # If date column is empty => can't determine date coverage
-                n_trxns_in_date_range = 0
-            else:
-                min_date = pd.to_datetime(expected["Min_Date"])
-                max_date = pd.to_datetime(expected["Max_Date"])
-                if actual_count == 0:
-                    n_trxns_in_date_range = 0
-                else:
-                    in_range_mask = (sub_df["Trxn_Date"] >= min_date) & (sub_df["Trxn_Date"] <= max_date)
-                    n_trxns_in_date_range = in_range_mask.sum() / actual_count
-
-            # -----------------------------------------------------
-            # 3. Channel checks
-            # -----------------------------------------------------
-            expected_channels = set(expected["Trxn_Type"])
-            if sub_df["Trxn_Channel"].dropna().empty:
-                # If every row is empty for channel => no actual channels
-                actual_channels = set()
-            else:
-                actual_channels = set(sub_df["Trxn_Channel"].dropna().unique())
-
-            missing_channels = list(expected_channels - actual_channels)
-            extra_channels = list(actual_channels - expected_channels)
-            channels_match = (actual_channels == expected_channels)
-
-            # -----------------------------------------------------
-            # 4. Location checks
-            # -----------------------------------------------------
-            expected_locations = set(expected.get("Branch_or_ATM_Location", []))
-            if sub_df["Branch_or_ATM_Location"].dropna().empty:
-                actual_locations = set()
-            else:
-                actual_locations = set(sub_df["Branch_or_ATM_Location"].dropna().unique())
-
-            missing_locations = list(expected_locations - actual_locations)
-            extra_locations = list(actual_locations - expected_locations)
-            locations_match = (actual_locations == expected_locations)
-
-            # -----------------------------------------------------
-            # 5. Individual amount range
-            # -----------------------------------------------------
-            if sub_df["Trxn_Amount"].dropna().empty or actual_count == 0:
-                perc_ind_amt_in_range = 0
-            else:
-                min_ind_amt = expected["Min_Ind_Amt"]
-                max_ind_amt = expected["Max_Ind_Amt"]
-                in_amt_range_mask = (sub_df["Trxn_Amount"] >= min_ind_amt) & (sub_df["Trxn_Amount"] <= max_ind_amt)
-                perc_ind_amt_in_range = in_amt_range_mask.sum() / actual_count
-
-            # -----------------------------------------------------
-            # 6. Add results for this row
-            # -----------------------------------------------------
+        if sub_df.empty:
+            # Nothing matches => fill defaults
             results.append({
-                "SAR ID": sar_id,
                 "Trxn_Set_ID": set_id,
-                "Amount_pct_diff": amount_pct_diff,
-                "Count_pct_diff": count_pct_diff,
-                "N_trxns_in_date_range": n_trxns_in_date_range,
-                "Missing_channels": missing_channels,
-                "Extra_channels": extra_channels,
-                "Channels_match": channels_match,
-                "Missing_locations": missing_locations,
-                "Extra_locations": extra_locations,
-                "Locations_match": locations_match,
-                "Perc_ind_amt_in_range": perc_ind_amt_in_range
+                "Amount_pct_diff": "",
+                "Count_pct_diff": "",
+                "N_trxns_in_date_range": "",
+                "Missing_channels": "",
+                "Extra_channels": "",
+                "Channels_match": False,
+                "Missing_locations": "",
+                "Extra_locations": "",
+                "Locations_match": False,
+                "Perc_ind_amt_in_range": 0
             })
+            continue
+
+        # -----------------------------------------------------
+        # 1. Amount & Count mismatch
+        # -----------------------------------------------------
+        expected_amount = float(expected["Total_Amount"])
+        expected_count = int(expected["N_trxns"])
+
+        # If 'Trxn_Amount' is entirely empty (all NaN), treat as 0
+        if sub_df["Trxn_Amount"].dropna().empty:
+            actual_amount = 0
+            actual_count = 0
+        else:
+            actual_amount = sub_df["Trxn_Amount"].sum()
+            actual_count = len(sub_df)
+
+        # Amount % diff
+        if expected_amount == 0:
+            amount_pct_diff = 0.0 if actual_amount == 0 else 100.0
+        else:
+            amount_pct_diff = ((actual_amount - expected_amount) / expected_amount) * 100.0
+
+        # Count % diff
+        if expected_count == 0:
+            count_pct_diff = 0.0 if actual_count == 0 else 100.0
+        else:
+            count_pct_diff = ((actual_count - expected_count) / expected_count) * 100.0
+
+        # -----------------------------------------------------
+        # 2. Date Range fraction
+        # -----------------------------------------------------
+        if sub_df["Trxn_Date"].dropna().empty:
+            # If date column is empty => can't determine date coverage
+            perc_trxns_in_date_range = 0
+        else:
+            min_date = pd.to_datetime(expected["Min_Date"])
+            max_date = pd.to_datetime(expected["Max_Date"])
+            if actual_count == 0:
+                perc_trxns_in_date_range = 0
+            else:
+                in_range_mask = (sub_df["Trxn_Date"] >= min_date) & (sub_df["Trxn_Date"] <= max_date)
+                perc_trxns_in_date_range = in_range_mask.sum() / actual_count
+
+        # -----------------------------------------------------
+        # 3. Channel checks
+        # -----------------------------------------------------
+        expected_channels = set(expected["Trxn_Type"])
+        if sub_df["Trxn_Channel"].dropna().empty:
+            # If every row is empty for channel => no actual channels
+            actual_channels = set()
+        else:
+            actual_channels = set(sub_df["Trxn_Channel"].dropna().unique())
+
+        missing_channels = list(expected_channels - actual_channels)
+        extra_channels = list(actual_channels - expected_channels)
+        channels_match = (actual_channels == expected_channels)
+
+        # -----------------------------------------------------
+        # 4. Location checks
+        # -----------------------------------------------------
+        expected_locations = set(expected.get("Branch_or_ATM_Location", []))
+        if sub_df["Branch_or_ATM_Location"].dropna().empty:
+            actual_locations = set()
+        else:
+            actual_locations = set(sub_df["Branch_or_ATM_Location"].dropna().unique())
+
+        missing_locations = list(expected_locations - actual_locations)
+        extra_locations = list(actual_locations - expected_locations)
+        locations_match = (actual_locations == expected_locations)
+
+        # -----------------------------------------------------
+        # 5. Individual amount range
+        # -----------------------------------------------------
+        if sub_df["Trxn_Amount"].dropna().empty or actual_count == 0:
+            perc_ind_amt_in_range = 0
+        else:
+            min_ind_amt = expected["Min_Ind_Amt"]
+            max_ind_amt = expected["Max_Ind_Amt"]
+            in_amt_range_mask = (sub_df["Trxn_Amount"] >= min_ind_amt) & (sub_df["Trxn_Amount"] <= max_ind_amt)
+            perc_ind_amt_in_range = in_amt_range_mask.sum() / actual_count
+
+        # -----------------------------------------------------
+        # 6. Add results for this row
+        # -----------------------------------------------------
+        results.append({
+            "Trxn_Set_ID": set_id,
+            "Amount_pct_diff": amount_pct_diff,
+            "Count_pct_diff": count_pct_diff,
+            "perc_trxns_in_date_range": perc_trxns_in_date_range,
+            "Missing_channels": missing_channels,
+            "Extra_channels": extra_channels,
+            "Channels_match": channels_match,
+            "Missing_locations": missing_locations,
+            "Extra_locations": extra_locations,
+            "Locations_match": locations_match,
+            "Perc_ind_amt_in_range": perc_ind_amt_in_range
+        })
 
     # Build final DataFrame
     results_df = pd.DataFrame(results)
 
     # Optional: reorder columns
     col_order = [
-        "SAR ID", "Trxn_Set_ID", "Amount_pct_diff", "Count_pct_diff",
-        "N_trxns_in_date_range", "Missing_channels", "Extra_channels",
+        "Trxn_Set_ID", "Amount_pct_diff", "Count_pct_diff",
+        "perc_trxns_in_date_range", "Missing_channels", "Extra_channels",
         "Channels_match", "Missing_locations", "Extra_locations",
         "Locations_match", "Perc_ind_amt_in_range"
     ]

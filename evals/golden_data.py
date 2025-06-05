@@ -54,7 +54,7 @@ sars = [
             "Organizations": ["Acme, Inc.", "Kulkutta Building Supply Company"],
             "Financial Institutions": ["Bank of Anan"]
         },
-        gold_account_ids=["123456789", "234567891", "3489728"],
+        gold_account_ids=["12345-6789", "23456-7891", "3489728"],
         gold_acct_to_fi={
             "123456789": "Dummy_Bank_1",
             "234567891": "Dummy_Bank_1",

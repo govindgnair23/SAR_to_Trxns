@@ -131,7 +131,7 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     for i,sub_narrative in enumerate(sub_narratives): 
         
         results_dict = route_and_execute(agents,sub_narrative)
-        
+
         output_file = generate_dynamic_output_file_name(filename="trxns_dict",output_file_type="json",
                                                     output_folder="./data/output")
         write_data_to_file(results_dict,output_file)
@@ -144,6 +144,8 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     # Concatenate to get a single dataframe with trxns for all trxns sets
     if trxn_df_list:
         trxns_df_final = pd.concat(trxn_df_list)
+        #Drop duplicate rows as same narratived could be attributes to two account ids (Originator and Beneficary)
+        trxns_df_final = trxns_df_final.drop_duplicates()
         trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
     else:
         logger.warning("No transaction dataframes were generated. Returning empty dataframe.")

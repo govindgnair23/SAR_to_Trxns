@@ -2,7 +2,7 @@ import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any
 from agents.workflows import run_agentic_workflow2
-from utils import read_data , generate_dynamic_output_file_name
+from utils import read_data , generate_dynamic_output_file_name,write_data_to_file
 from evals.eval_functions import compare_trxns
 from evals.golden_data import sars, expected_trxns
 import logging
@@ -43,7 +43,8 @@ if __name__ == "__main__":
 
         logger.info(f"Evaluating Predictions for SAR {sar.sar_name}...")
        
-        trxn_metrics = compare_trxns(pred_output,expected_trxns)
+        trxn_metrics = compare_trxns(pred_output,expected_trxns[sar.sar_name])
+        trxn_metrics.insert(0, "sar_id", sar.sar_name)
         sar_trxn_metrics.append(trxn_metrics)
 
     sar_trxn_metrics_df = pd.concat(sar_trxn_metrics,ignore_index= True)
@@ -54,4 +55,4 @@ if __name__ == "__main__":
     #print(entity_metrics.to_string(index=False))
 
     output_file = generate_dynamic_output_file_name(filename="trxn_metrics",output_file_type="csv",output_folder=output_folder)
-    sar_trxn_metrics_df.to_csv(output_file)
+    write_data_to_file(sar_trxn_metrics_df,output_file)
