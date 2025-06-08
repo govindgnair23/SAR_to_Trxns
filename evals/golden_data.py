@@ -233,7 +233,7 @@ expected_trxns = {
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
           "Max_Date": "2003-03-17",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt":1500,
           "Max_Ind_Amt":9500,
           "N_trxns": 13}
@@ -245,7 +245,7 @@ expected_trxns = {
           "Trxn_Type": ["Wire"],
           "Min_Date": "2003-01-17",
           "Max_Date": "2003-03-21",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt":25000,
           "Max_Ind_Amt":25000,
           "N_trxns" : 9
@@ -258,6 +258,7 @@ expected_trxns = {
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
           "Max_Date": "2003-03-17",
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt":4400,
           "Max_Ind_Amt":9900,
           "N_trxns" : 33
@@ -285,7 +286,7 @@ expected_trxns = {
           "Trxn_Type": ["Check"],
           "Min_Date": "2003-06-04",
           "Max_Date": "2003-06-13",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 9800,
           "Max_Ind_Amt":9800,
           "N_trxns": 6}
@@ -300,7 +301,7 @@ expected_trxns = {
           "Trxn_Type": ["Cash"],
           "Min_Date": "2002-03-15",
           "Max_Date": "2003-03-18",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 9700,
           "Max_Ind_Amt":9900,
           "N_trxns": 3},
@@ -312,7 +313,7 @@ expected_trxns = {
           "Trxn_Type": ["Wire"],
           "Min_Date": "2002-03-16",
           "Max_Date": "2002-03-19",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 9700,
           "Max_Ind_Amt": 9900,
           "N_trxns": 3}
@@ -339,7 +340,7 @@ expected_trxns = {
           "Trxn_Type": ["Wire"],
           "Min_Date": "1999-02-03",
           "Max_Date": "2001-06-21",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 9700,
           "Max_Ind_Amt": 9900,
           "N_trxns": 274}
@@ -351,7 +352,7 @@ expected_trxns = {
           "Trxn_Type": ["Cash"],
           "Min_Date": "1999-02-02",
           "Max_Date": "2001-06-20",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 8720,
           "Max_Ind_Amt": 16500,
           "N_trxns": 200},
@@ -363,7 +364,7 @@ expected_trxns = {
           "Trxn_Type": ["Wire"],
           "Min_Date": "1999-02-03",
           "Max_Date": "2001-06-21",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 8720,
           "Max_Ind_Amt": 16500,
           "N_trxns": 200},
@@ -375,13 +376,10 @@ expected_trxns = {
           "Trxn_Type": ["Wire"],
           "Min_Date": "1999-02-03",
           "Max_Date": "2001-06-21",
-          "Branch_or_ATM_Location": [],
+          "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 1000,
           "Max_Ind_Amt": 100000,
           "N_trxns": 200}
     }
 }
 
-sar1 = sars[0]
-print(sar1.sar_name)
-print(sar1.sar_narrative)
