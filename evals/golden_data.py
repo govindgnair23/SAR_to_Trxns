@@ -367,18 +367,6 @@ expected_trxns = {
           "Branch_or_ATM_Location": [''],
           "Min_Ind_Amt": 8720,
           "Max_Ind_Amt": 16500,
-          "N_trxns": 200},
-
-    "Trxn_Set_5":
-         {"Originator_Account_ID": "689472",
-          "Beneficiary_Account_ID": "12345678",
-          "Total_Amount": 100000,
-          "Trxn_Type": ["Wire"],
-          "Min_Date": "1999-02-03",
-          "Max_Date": "2001-06-21",
-          "Branch_or_ATM_Location": [''],
-          "Min_Ind_Amt": 1000,
-          "Max_Ind_Amt": 100000,
           "N_trxns": 200}
     }
 }

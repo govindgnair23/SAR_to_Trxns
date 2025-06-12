@@ -591,33 +591,35 @@ agents:
 
       Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
 
-      Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as a list. If this is missing, you can make a reasonable assumption.
+      Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as an array called - Trxn_Channel. If this is missing, you can make a reasonable assumption.
 
-      Step 3) Identify the Beneficiary Account ID, the Customer ID corresponding to the account, the Beneficiary_Name which is the Individual Or Organization which is the 
-      Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
+      Step 3) Identify the Beneficiary's  Account ID (Beneficiary_Account_ID), the Customer ID corresponding to the account(Beneficiary_Customer_ID), the Beneficiary_Name which is the Individual Or Organization which is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or beneficary are available, you can assume the originator and beneficiary are the same.
 
-      Step 4) Identify the Originator Account ID, the Customer ID corresponding to the account, the Originating_Name which is the Individual Or Organization originating
-      the transaction.
+      Step 4) Identify the Account ID which originated the trxn (Originator_Account_ID), the Customer ID corresponding to the account
+      (Originator_Customer_ID),and the Originating_Name which is the Individual Or Organization originating the transaction.
 
-      Step 5) Identify the first and last dates the transactions. If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
+      Step 5) Identify the first date a trxn happened (First_Trxn_Date) and the last date a trxn happened(Last_Trxn_Date). If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
 
-      Step 6) Identify the minimum and maximum amount of the transactions.
+      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount).
 
-      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted. 
+      Step 7) Identify the total amount  of trxn activity if described (Total_Amount)
+
+      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location)
 
       Step 8) Ensure the following are extracted.
 
       -N_transactions
-      -Originator_Name
-      -Originator_Account_ID
-      -Originator_Customer_ID
-      -Beneficiary_Name
+      -Trxn_Channel
       -Beneficiary_Account_ID
       -Beneficiary_Customer_ID
-      -Trxn_Channel or List of Trxn Channels
-      -First Trxn_Date and Last Trxn Date in yyyy-mm-dd format
+      -Beneficiary_Name
+      -Originator_Account_ID
+      -Originator_Customer_ID
+      -Originator_Name
+      -First_Trxn_Date and Last_Trxn_Date in yyyy-mm-dd format
       -Min_Ind_Trxn_Amount and Max_Ind_Trxn_Amount
-      -Branch or ATM Location or List of such locations
+      -Total_Amount
+      -Branch_or_ATM_Location
 
       If any information is missing and can't be reasonably assumed, use an empty string "" to indicate it is missing.
     
@@ -631,12 +633,13 @@ agents:
       -Beneficiary_Name
       -Beneficiary_Account_ID
       -Beneficiary_Customer_ID
-      -Trxn_Channel 
+      -Trxn_Channel
       -Start_Date
       -End_Date
       -Min_Ind_Trxn_Amount
       -Max_Ind_Trxn_Amount
-      -Branch_or_ATM_Location 
+      -Total_Amount
+      -Branch_or_ATM_Location
       -N_transactions
 
 
@@ -646,35 +649,36 @@ agents:
 
       ----
 
-      Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.
-                              There were 10 trns, a mix of Wire and Checks, each transactions was $10,000"}
+      Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.There were 10 trxns, a mix of Wire and Checks, each transaction was $10,000"}
 
-                    Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
-                    Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank" } 
-                    FI_to_Acct_to_Cust =  {"Bank of America": {"345723":"CUST_001", "98765":"CUST_002"}, "Chase Bank": {"Dummy_001": "CUST_003"}}
+      Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
+      Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank" } 
+      FI_to_Acct_to_Cust =  {"Bank of America": {"345723":"CUST_001", "98765":"CUST_002"}, "Chase Bank": {"Dummy_001": "CUST_003"}}
 
       
         Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
             There are a total of 10 transactions described, so N_transactions = 10.
 
         Step 2) Identify the transaction channels or product used.
-            The transactions are a mix of Wires and Checks. So create a list ["Wire","Check"]
+            The transactions are a mix of Wires and Checks. So create an array ["Wire","Check"]
 
 
-        Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
+        Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account id is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
         
 
         Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
                 
         Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024. In yyyy-mm-dd format, they are 2024-01-01 and 2024-07-04.
 
-        Step 6) The minimum and maximum transaction amount is $10,000
+        Step 6) The minimum and maximum transaction amount is $10000
 
-        Step 7) Since the transactions are Wire or Chek transactions, Branch or ATM Location can be considered Missing. 
+        Step 7) The total amount transferred as part the narrative is $100000
+
+        Step 8) Since the transactions are Wire or Chek transactions, Branch or ATM Location can be considered Missing. 
         
-        Step 8) All the required attributes have been gathered.
+        Step 9) All the required attributes have been gathered.
 
-        Step 9) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
+        Step 10) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
             {
                 "Originator_Name" : "John",
                 "Originator_Account_ID": "345723",
@@ -687,7 +691,8 @@ agents:
                 "End_Date": "2024-07-04",
                 "Min_Ind_Trxn_Amt": 10000,
                 "Max_Ind_Trxn_Amt": 10000,
-                "Branch_or_ATM_Location": "",
+                "Total_Amount":100000
+                "Branch_or_ATM_Location": [""],
                 "N_transactions":10
             }
 
@@ -697,7 +702,7 @@ agents:
     overwrite_instructions: True
     overwrite_tools: True
     description: |
-       An AI Assistant who is good at generating a large number of transactions on just a single date with just a single trxn amount OR on a range of dates with a range of trxn amounts.
+       An AI Assistant who is good at generating a large number of transactions on just a single date with just a single trxn amount or a range of trxn amounts OR on a range of dates with a single trxn amount or a range of trxn amounts.
     llm_config:
       model: "gpt-4o-mini"
       temperature: 0
@@ -708,6 +713,6 @@ agents:
     description: |
       An Agent that routes a user request to the appropriate agent from the list of agents it is initialized with.
     llm_config:
-      model: "gpt-4o-mini"
+      model: "gpt-4.1-mini"
       temperature: 0
 
