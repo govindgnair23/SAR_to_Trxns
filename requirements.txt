@@ -5,3 +5,4 @@ pyautogen==0.2.25
 python-dotenv
 PyYAML
 typing_extensions
+streamlit
