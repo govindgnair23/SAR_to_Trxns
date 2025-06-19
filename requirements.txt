@@ -6,3 +6,5 @@ python-dotenv
 PyYAML
 typing_extensions
 streamlit
+networkx
+pyvis

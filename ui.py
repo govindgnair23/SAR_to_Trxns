@@ -7,6 +7,8 @@ import json
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
+from pyvis.network import Network
+import streamlit.components.v1 as components
 def generate_network_graph(entities, df):
     G = nx.DiGraph()
     # Add entity nodes
@@ -15,12 +17,10 @@ def generate_network_graph(entities, df):
         node_type = category[:-1].lower() if category.endswith('s') else category.lower()
         for name in names:
             G.add_node(name, label=name, type=node_type)
-    # Add account nodes and narratives
+    # Add account nodes 
     for acct in entities.get("Account_IDs", []):
         G.add_node(acct, label=acct, type="account")
-        narrative = entities.get("Narratives", {}).get(acct)
-        if narrative:
-            G.nodes[acct]["narrative"] = narrative
+        
     # Add account-to-FI edges
     for acct, fi in entities.get("Acct_to_FI", {}).items():
         if G.has_node(acct) and G.has_node(fi):
@@ -29,43 +29,115 @@ def generate_network_graph(entities, df):
     for acct, cust in entities.get("Acct_to_Cust", {}).items():
         if G.has_node(acct) and G.has_node(cust):
             G.add_edge(acct, cust, relation="owned_by")
-    # Add transaction edges
-    for _, row in df.iterrows():
-        src = row.get("Originator_Account_ID")
-        dst = row.get("Beneficiary_Account_ID")
+    # Aggregate transactions by originator, beneficiary, and channel
+    agg = df.groupby(
+        ["Originator_Account_ID", "Beneficiary_Account_ID", "Trxn_Channel"],
+        dropna=False
+    )["Trxn_Amount"].sum().reset_index(name="total_amount")
+    # Add one edge per channel with total amount
+    for _, row in agg.iterrows():
+        src = row["Originator_Account_ID"]
+        dst = row["Beneficiary_Account_ID"]
+        channel = row["Trxn_Channel"]
         if src and dst:
-            G.add_edge(
-                src,
-                dst,
-                channel=row.get("Trxn_Channel"),
-                date=row.get("Trxn_Date"),
-                amount=row.get("Trxn_Amount"),
-                location=row.get("Branch_or_ATM_Location"),
-                transaction_id=row.get("Transaction_ID")
-            )
+            edge_attrs = {
+                "channel": channel,
+                "type": channel,
+                "total_amount": row["total_amount"]
+            }
+            # If Cash, capture all unique locations
+            if channel == "Cash":
+                locs = df.loc[
+                    (df["Originator_Account_ID"] == src) &
+                    (df["Beneficiary_Account_ID"] == dst) &
+                    (df["Trxn_Channel"] == "Cash"),
+                    "Branch_or_ATM_Location"
+                ].dropna().unique().tolist()
+                if locs:
+                    edge_attrs["locations"] = locs
+            G.add_edge(src, dst, **edge_attrs)
+    # Record distinct transaction channels for downstream use
+    channels = sorted(df["Trxn_Channel"].dropna().unique().tolist())
+    G.graph["channels"] = channels
     return G
 
-def visualize_graph(G):
-    # Use spring layout for positioning
-    pos = nx.spring_layout(G)
-    plt.figure(figsize=(8, 6))
-    # Draw nodes
-    labels = nx.get_node_attributes(G, 'label')
-    nx.draw_networkx_nodes(G, pos, node_size=300, node_color='lightblue')
-    nx.draw_networkx_labels(G, pos, labels)
-    # Draw edges
-    nx.draw_networkx_edges(G, pos, arrows=True)
-    # Optionally, draw edge labels for relations or transaction IDs
-    edge_labels = {}
+
+
+def visualize_interactive_graph(G):
+    # Create a PyVis network
+    # Define colors for each node type
+    node_type_colors = {
+        "account": "#1f77b4",
+        "individual": "#ff7f0e",
+        "organization": "#2ca02c",
+        "financial_institution": "#d62728"
+    }
+    net = Network(height="600px", width="100%", directed=True)
+    net.toggle_physics(True)
+    # Add nodes
+    for node, data in G.nodes(data=True):
+        label = data.get("label", node)
+        title = "<br>".join(f"{k}: {v}" for k, v in data.items())
+        node_type = data.get("type", "")
+        color = node_type_colors.get(node_type, "#7f7f7f")
+        net.add_node(node, label=label, title=title, color=color)
+    # Add edges with channel-specific colors and tooltips
+    # Retrieve channels passed via the graph object
+    channels = G.graph.get("channels", [])
+    # Standard 8-color HTML palette
+    palette = [
+        '#1f77b4',  # muted blue
+        '#ff7f0e',  # safety orange
+        '#2ca02c',  # cooked asparagus green
+        '#d62728',  # brick red
+        '#9467bd',  # muted purple
+        '#8c564b',  # chestnut brown
+        '#e377c2',  # raspberry yogurt pink
+        '#7f7f7f'   # middle gray
+    ]
+    channel_colors = {ch: palette[i % len(palette)] for i, ch in enumerate(channels)}
     for u, v, data in G.edges(data=True):
-        # show relation if present, else transaction_id
-        lbl = data.get('relation') or data.get('transaction_id', '')
-        if lbl:
-            edge_labels[(u, v)] = lbl
-    if edge_labels:
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
-    plt.axis('off')
-    st.pyplot(plt)
+        channel = data.get("channel")
+        if channel:
+            color = channel_colors.get(channel, "black")
+            dashed = True
+        else:
+            color = "black"
+            dashed = False
+        title = "<br>".join(f"{k}: {v}" for k, v in data.items())
+        net.add_edge(u, v, title=title, color=color, arrows="to", dashes=dashed)
+    # Generate and embed HTML
+    html = net.generate_html(notebook=False)
+    components.html(html, height=650)
+
+    # Display legend for channels with dotted lines
+    st.markdown("**Channel Legend**")
+    for ch, color in channel_colors.items():
+        # Render a colored dotted line sample
+        line_html = f"<span style='border-bottom:3px dotted {color}; display:inline-block; width:50px; margin-right:8px;'></span> {ch}"
+        st.markdown(line_html, unsafe_allow_html=True)
+
+    # Display legend for node types
+    st.markdown("**Node Types**")
+    for nt, color in node_type_colors.items():
+        label = nt.replace('_', ' ').title()
+        st.markdown(
+            f"<span style='color:{color}'>■</span> {label}",
+            unsafe_allow_html=True
+        )
+
+    # Display legend for edge styles
+    st.markdown("**Edge Styles**")
+    # Dotted line sample for transactions
+    st.markdown(
+        "<span style='border-bottom:2px dashed black; display:inline-block; width:30px;'></span> Transaction Edge",
+        unsafe_allow_html=True
+    )
+    # Solid line sample for non-transaction edges
+    st.markdown(
+        "<span style='border-bottom:2px solid black; display:inline-block; width:30px;'></span> Other Edge",
+        unsafe_allow_html=True
+    )
 
 
 
@@ -100,4 +172,4 @@ if uploaded_file is not None:
 
         st.subheader("🌐 Transaction Graph")
         G = generate_network_graph(entities, df)
-        visualize_graph(G)
+        visualize_interactive_graph(G)
