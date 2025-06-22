@@ -35,7 +35,43 @@ def generate_transactions(
     Tool to generate trxns
     '''
     logger.info("generate_transactions called with args: %s", locals())
-    
+
+    # Coerce blank-string Total_Amount to None and validate numeric input
+    if Total_Amount == "":
+        Total_Amount = None
+    elif Total_Amount is not None:
+        try:
+            Total_Amount = float(Total_Amount)
+        except (TypeError, ValueError):
+            raise ValueError(f"Total_Amount must be a number or None, got {Total_Amount!r}")
+
+    # Coerce blank-string Min_Ind_Trxn_Amt to None and validate numeric input
+    if Min_Ind_Trxn_Amt == "":
+        Min_Ind_Trxn_Amt = None
+    elif Min_Ind_Trxn_Amt is not None:
+        try:
+            Min_Ind_Trxn_Amt = float(Min_Ind_Trxn_Amt)
+        except (TypeError, ValueError):
+            raise ValueError(f"Min_Ind_Trxn_Amt must be a number or None, got {Min_Ind_Trxn_Amt!r}")
+
+    # Coerce blank-string Max_Ind_Trxn_Amt to None and validate numeric input
+    if Max_Ind_Trxn_Amt == "":
+        Max_Ind_Trxn_Amt = None
+    elif Max_Ind_Trxn_Amt is not None:
+        try:
+            Max_Ind_Trxn_Amt = float(Max_Ind_Trxn_Amt)
+        except (TypeError, ValueError):
+            raise ValueError(f"Max_Ind_Trxn_Amt must be a number or None, got {Max_Ind_Trxn_Amt!r}")
+
+    # Coerce blank-string N_transactions to None and validate integer input
+    if N_transactions == "":
+        N_transactions = None
+    elif N_transactions is not None:
+        try:
+            N_transactions = int(N_transactions)
+        except (TypeError, ValueError):
+            raise ValueError(f"N_transactions must be an integer or None, got {N_transactions!r}")
+
     Start_Date = datetime.strptime(Start_Date,"%Y-%m-%d")
     End_Date = datetime.strptime(End_Date,"%Y-%m-%d")
 
@@ -49,7 +85,7 @@ def generate_transactions(
         Total_Amount is None and
         N_transactions is not None and N_transactions > 0
     )
-    case_total_only = (
+    case_total_and_count_only = (
         Total_Amount is not None and Total_Amount > 0 and
         Min_Ind_Trxn_Amt in [None, 0] and
         Max_Ind_Trxn_Amt in [None, 0] and
@@ -61,18 +97,8 @@ def generate_transactions(
         Max_Ind_Trxn_Amt is not None and Max_Ind_Trxn_Amt > 0
     )
 
-    if case_total_and_bounds:
-        N_min = math.ceil(Total_Amount / Max_Ind_Trxn_Amt)
-        N_max = math.floor(Total_Amount / Min_Ind_Trxn_Amt)
-        if N_min > N_max:
-            logging.info(f"Total_Amount: {Total_Amount} & N_min: {N_min} & N_max: {N_max}")
-            raise ValueError("Incompatible Total_Amount with provided bounds")
-        N_transactions = random.randint(N_min, N_max)
 
-        logger.info(
-            f"Generating {N_transactions} transactions"
-        )
-    if not (case_min_max or case_total_only or case_total_and_bounds):
+    if not (case_min_max or case_total_and_count_only or case_total_and_bounds):
         logger.info(
             "Warning: Invalid combination of inputs. "
             "Expected one of the following: "
@@ -83,18 +109,10 @@ def generate_transactions(
         return {}
     
     trxns = {} #Dictionary to hold transactions
-    trxn_channels = random.choices(Trxn_Channel, k = N_transactions)
-    
-    sample_deltas  =  random.choices(range((End_Date - Start_Date).days),k = N_transactions) #Get random number of days to be added to get new dates
-    trxn_dates = [   Start_Date + timedelta(delta) for delta in sample_deltas] # TO DO: Add start and end date to the list
-    #Convert back to string
-    trxn_dates = [trxn_date.strftime("%Y-%m-%d") for trxn_date in trxn_dates]
 
-    if case_min_max:
-        trxn_amounts = np.round(
-            np.random.uniform(low=Min_Ind_Trxn_Amt, high=Max_Ind_Trxn_Amt, size=N_transactions), 2
-        )
-    elif case_total_only:
+    if case_total_and_count_only:
+        # Use provided N_transactions to split Total_Amount
+        logger.info(f"Generating {N_transactions} transactions based on total and count only")
         # Weights sampled near uniform to reduce variance
         epsilon = 1.0 / (2 * N_transactions)
         base = 1.0 / N_transactions
@@ -108,9 +126,41 @@ def generate_transactions(
         diff = round(Total_Amount - amounts.sum(), 2)
         amounts[0] = round(amounts[0] + diff, 2)
         trxn_amounts = amounts
-    else:  # case_total_and_bounds
-        # Sample random amounts, then truncate to cumulative Total_Amount
-        raw_amounts = np.round(
+
+    elif case_total_and_bounds:
+        # Determine number of transactions from total and bounds
+        N_transactions = math.ceil(Total_Amount / Min_Ind_Trxn_Amt)
+        logger.info(f"Generating {N_transactions} transactions based on total and bounds")
+        # Sample random amounts until their sum meets or exceeds Total_Amount
+        attempts = 0
+        max_attempts = 1000
+        while True:
+            raw_amounts = np.round(
+                np.random.uniform(
+                    low=Min_Ind_Trxn_Amt,
+                    high=Max_Ind_Trxn_Amt,
+                    size=N_transactions
+                ),
+                2
+            )
+            total_raw = raw_amounts.sum()
+            if total_raw >= Total_Amount:
+                break
+            attempts += 1
+            if attempts >= max_attempts:
+                raise ValueError("Could not generate transaction amounts to meet Total_Amount after multiple attempts")
+        cumsum = np.cumsum(raw_amounts)
+        idx = int(np.argmax(cumsum >= Total_Amount))
+        trxn_amounts = raw_amounts[:idx+1].tolist()
+        prev_sum = float(cumsum[idx] - raw_amounts[idx])
+        last_amt = round(Total_Amount - prev_sum, 2)
+        trxn_amounts[-1] = last_amt
+        trxn_amounts = np.array(trxn_amounts)
+        N_transactions = len(trxn_amounts)
+
+    elif case_min_max:
+        # Sample uniform random amounts within bounds
+        trxn_amounts = np.round(
             np.random.uniform(
                 low=Min_Ind_Trxn_Amt,
                 high=Max_Ind_Trxn_Amt,
@@ -118,20 +168,16 @@ def generate_transactions(
             ),
             2
         )
-        cumsum = np.cumsum(raw_amounts)
-        # Find index where cumulative sum meets or exceeds Total_Amount
-        idx = int(np.argmax(cumsum >= Total_Amount))
-        # Take all amounts up to that index
-        trxn_amounts = raw_amounts[:idx+1].tolist()
-        # Adjust last amount so total matches exactly
-        prev_sum = float(cumsum[idx] - raw_amounts[idx])
-        last_amt = round(Total_Amount - prev_sum, 2)
-        trxn_amounts[-1] = last_amt
-        # Convert back to numpy array
-        trxn_amounts = np.array(trxn_amounts)
-        # Update number of transactions to match truncated list
-        N_transactions = len(trxn_amounts)
+
+    else:
+        # This should not happen due to earlier validation
+        raise RuntimeError("Unhandled transaction generation case")
         
+    # Sample channels and dates once N_transactions is finalized
+    trxn_channels = random.choices(Trxn_Channel, k=N_transactions)
+    sample_deltas = random.choices(range((End_Date - Start_Date).days), k=N_transactions)
+    trxn_dates = [Start_Date + timedelta(delta) for delta in sample_deltas]
+    trxn_dates = [d.strftime("%Y-%m-%d") for d in trxn_dates]
 
     # Handle list of locations by sampling one per transaction
     if isinstance(Branch_or_ATM_Location, list):

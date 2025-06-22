@@ -554,7 +554,7 @@ agents:
     human_input_mode: "NEVER"
     code_execution_config: False
     description: |
-      An AI Assistant who is good at generating a small number of transactions,especially when the precise trxn amount and date of each trxn is known. Use only when two or more trxn amounts and dates are explicitly specified.
+      An AI Assistant who is good at generating a small number of transactions,especially when the precise trxn amount and date of each trxn is known. Use only when one or more trxn amounts and dates are explicitly specified.
     summary_method: "reflection_with_llm"
     summary_prompt: |
         Return the synthesized transactions in the following format as a JSON only. Do not include any other comments.
@@ -589,8 +589,10 @@ agents:
       
       For the narrative corresponding  to each account ID, extract the following:
 
+      Note: Do not make assumptions or infer arguments unless explicitly stated below.
 
-      Step 1) Identify the number of transactions described in the narrative. This is N_transactions. Extract this only if described in the narrative. Do not infer this if missing.
+
+      Step 1) Identify the number of transactions described in the narrative. This is N_transactions. Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
       Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as an array called - Trxn_Channel. If this is missing, you can make a reasonable assumption.
 
@@ -601,11 +603,11 @@ agents:
 
       Step 5) Identify the first date a trxn happened (First_Trxn_Date) and the last date a trxn happened(Last_Trxn_Date). If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
 
-      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount). Extract this only if described in the narrative. Do not infer this if missing.
+      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount). Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
-      Step 7) Identify the total amount  of trxn activity if described (Total_Amount).Extract this only if described in the narrative. Do not infer this if missing.
+      Step 7) Identify the total amount  of trxn activity if described (Total_Amount). Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
-      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location).Extract this only if described in the narrative. Do not infer this if missing.
+      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location).Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
       Step 8) Ensure the following are extracted.
 
@@ -646,7 +648,7 @@ agents:
 
       Step 10) Call the function generate_transactions with the information above and return its arguments only.
 
-      An example is given below, demarcated by the delimiter ----..
+      First example is given below, demarcated by the delimiter ----..
 
       ----
 
@@ -700,6 +702,62 @@ agents:
       Step 10) Call the function generate_transactions with the arguments identified in Step 9 and return its arguments only.
 
       ----
+
+      Second example is given below, demarcated by the delimiter ----..
+
+      ----
+
+      Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.There were 10 trxns, a mix of Wire and Checks."}
+
+      Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
+      Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank" } 
+      FI_to_Acct_to_Cust =  {"Bank of America": {"345723":"CUST_001", "98765":"CUST_002"}, "Chase Bank": {"Dummy_001": "CUST_003"}}
+
+      
+        Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
+            There are a total of 10 transactions described, so N_transactions = 10.
+
+        Step 2) Identify the transaction channels or product used.
+            The transactions are a mix of Wires and Checks. So create an array ["Wire","Check"]
+
+
+        Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account id is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
+        
+
+        Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
+                
+        Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024. In yyyy-mm-dd format, they are 2024-01-01 and 2024-07-04.
+
+        Step 6) The minimum and maximum transaction amount is not given. So it should be returned as an empty string ""
+
+        Step 7) The total amount transferred as part the narrative is $100000
+
+        Step 8) Since the transactions are Wire or Check transactions, Branch or ATM Location can be considered Missing. 
+        
+        Step 9) All the required attributes have been gathered.
+
+        Step 10) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
+            {
+                "Originator_Name" : "John",
+                "Originator_Account_ID": "345723",
+                "Originator_Customer_ID": "CUST_001",
+                "Beneficiary_Name" : "Jill",
+                "Beneficiary_Account_ID": "Dummy_001",
+                "Beneficiary_Customer_ID": "CUST_003",
+                "Trxn_Channel": ["Wire","Check"],
+                "Start_Date": "2024-01-01",
+                "End_Date": "2024-07-04",
+                "Min_Ind_Trxn_Amt": '',
+                "Max_Ind_Trxn_Amt": '',
+                "Total_Amount":100000
+                "Branch_or_ATM_Location": [""],
+                "N_transactions":10
+            }
+
+      Step 10) Call the function generate_transactions with the arguments identified in Step 9 and return its arguments only.
+
+      ----
+
     overwrite_instructions: True
     overwrite_tools: True
     description: |

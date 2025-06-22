@@ -551,7 +551,7 @@ class Test_Transaction_Generation_Agent(unittest.TestCase):
                     )
 
 
-class TestGroupChatManager(unittest.TestCase):
+class TestRouterAgent(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
