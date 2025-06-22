@@ -34,9 +34,13 @@ def generate_transactions(
     '''
     Tool to generate trxns
     '''
+    logger.info("generate_transactions called with args: %s", locals())
     
     Start_Date = datetime.strptime(Start_Date,"%Y-%m-%d")
     End_Date = datetime.strptime(End_Date,"%Y-%m-%d")
+
+
+    
     
     # Determine scenario and derive N_transactions if needed
     case_min_max = (
@@ -61,8 +65,13 @@ def generate_transactions(
         N_min = math.ceil(Total_Amount / Max_Ind_Trxn_Amt)
         N_max = math.floor(Total_Amount / Min_Ind_Trxn_Amt)
         if N_min > N_max:
+            logging.info(f"Total_Amount: {Total_Amount} & N_min: {N_min} & N_max: {N_max}")
             raise ValueError("Incompatible Total_Amount with provided bounds")
         N_transactions = random.randint(N_min, N_max)
+
+        logger.info(
+            f"Generating {N_transactions} transactions"
+        )
     if not (case_min_max or case_total_only or case_total_and_bounds):
         logger.info(
             "Warning: Invalid combination of inputs. "
@@ -100,8 +109,8 @@ def generate_transactions(
         amounts[0] = round(amounts[0] + diff, 2)
         trxn_amounts = amounts
     else:  # case_total_and_bounds
-        # Having estimated N_transactions, simply sample amounts uniformly within bounds
-        trxn_amounts = np.round(
+        # Sample random amounts, then truncate to cumulative Total_Amount
+        raw_amounts = np.round(
             np.random.uniform(
                 low=Min_Ind_Trxn_Amt,
                 high=Max_Ind_Trxn_Amt,
@@ -109,6 +118,20 @@ def generate_transactions(
             ),
             2
         )
+        cumsum = np.cumsum(raw_amounts)
+        # Find index where cumulative sum meets or exceeds Total_Amount
+        idx = int(np.argmax(cumsum >= Total_Amount))
+        # Take all amounts up to that index
+        trxn_amounts = raw_amounts[:idx+1].tolist()
+        # Adjust last amount so total matches exactly
+        prev_sum = float(cumsum[idx] - raw_amounts[idx])
+        last_amt = round(Total_Amount - prev_sum, 2)
+        trxn_amounts[-1] = last_amt
+        # Convert back to numpy array
+        trxn_amounts = np.array(trxn_amounts)
+        # Update number of transactions to match truncated list
+        N_transactions = len(trxn_amounts)
+        
 
     # Handle list of locations by sampling one per transaction
     if isinstance(Branch_or_ATM_Location, list):

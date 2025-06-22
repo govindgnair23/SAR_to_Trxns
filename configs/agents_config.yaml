@@ -587,9 +587,10 @@ agents:
         a dummy financial institution starting with "Dummy_Bank_" will be used for them.</n>
       4) A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs given by the dictionary FI_to_Acct_to_Cust
       
-      For the narrative corresponding  to each account ID, do the following:
+      For the narrative corresponding  to each account ID, extract the following:
 
-      Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
+
+      Step 1) Identify the number of transactions described in the narrative. This is N_transactions. Extract this only if described in the narrative. Do not infer this if missing.
 
       Step 2) Identify the transaction channels or product used. This could be Wire, Cash, Checks or something similar.Record this as an array called - Trxn_Channel. If this is missing, you can make a reasonable assumption.
 
@@ -600,11 +601,11 @@ agents:
 
       Step 5) Identify the first date a trxn happened (First_Trxn_Date) and the last date a trxn happened(Last_Trxn_Date). If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
 
-      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount).
+      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount). Extract this only if described in the narrative. Do not infer this if missing.
 
-      Step 7) Identify the total amount  of trxn activity if described (Total_Amount)
+      Step 7) Identify the total amount  of trxn activity if described (Total_Amount).Extract this only if described in the narrative. Do not infer this if missing.
 
-      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location)
+      Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location).Extract this only if described in the narrative. Do not infer this if missing.
 
       Step 8) Ensure the following are extracted.
 
@@ -704,7 +705,7 @@ agents:
     description: |
        An AI Assistant who is good at generating a large number of transactions on just a single date with just a single trxn amount or a range of trxn amounts OR on a range of dates with a single trxn amount or a range of trxn amounts.
     llm_config:
-      model: "gpt-4o-mini"
+      model: "gpt-4.1-mini"
       temperature: 0
       response_format:
         type: json_object

@@ -362,7 +362,6 @@ def instantiate_agents_for_trxn_generation(configs):
         agent_name = router_agent_config.get('name', 'Default_Agent_Name')
         llm_config = router_agent_config.get('llm_config')
         human_input_mode = router_agent_config.get('human_input_mode',"NEVER")
-        code_execution_config = router_agent_config.get("trxn_generation_agent_config", False)
         description =  router_agent_config.get("description","")
         
         logger.info(f"Loaded configuration for  Router Agent")

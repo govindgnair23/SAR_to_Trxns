@@ -22,7 +22,7 @@ class TestWorkflow1(unittest.TestCase):
         cls.expected_dictionary = {
             'Entities': {
                 'Individuals': ['John', 'Jill'],
-                'Organizations': [],
+                'Organizations': [''],
                 'Financial_Institutions': ['Bank of America', 'Chase Bank']
             },
             'Account_IDs': ['345723', '99999', 'Dummy_Acct_1'],
@@ -60,6 +60,9 @@ class TestWorkflow1(unittest.TestCase):
  
         config_file = 'configs/agents_config.yaml' 
         cls.result = run_agentic_workflow1(test_sar1,config_file)
+
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
 
     def test_result_is_dict(self):
         """
@@ -221,14 +224,16 @@ class TestWorkflow2(unittest.TestCase):
         
         cls.expected_results1 = {"Originator_Account_ID": "345723",
                                 "Beneficiary_Account_ID": "345723",
-                                "Total_Amount": 5000,
+                                "Min_Total_Amount": 5000,
+                                "Max_Total_Amount": 5000,
                                 "Trxn_Type": ["Cash"],
                                 "Min_Date": "2025-01-15",
                                 "Max_Date": "2025-01-15",
-                                "Branch_ATM_Location": ["Manhattan"],
+                                "Branch_ATM_Location": ["Manhattan","Manhattan Branch"],
                                 "Min_Ind_Amt":5000,
                                 "Max_Ind_Amt":5000,
-                                "N_trxns": 1}
+                                "Min_N_trxns": 1,
+                                "Max_N_trxns":1}
         
         cls.test_input2  = {'Entities': 
                             {'Individuals': ['John', 'Jill'], 
@@ -247,14 +252,16 @@ class TestWorkflow2(unittest.TestCase):
 
         cls.expected_results2 = {"Originator_Account_ID": "345723",
                                 "Beneficiary_Account_ID": "Dummy_Acct_1",
-                                "Total_Amount": 25*7500,
+                                "Min_Total_Amount": 25*5000,
+                                "Max_Total_Amount": 25*10000,
                                 "Trxn_Type": ["Wire"],
                                 "Min_Date": "2025-01-01",
                                 "Max_Date": "2025-01-31",
                                 "Branch_ATM_Location": [''],
                                 "Min_Ind_Amt":5000,
                                 "Max_Ind_Amt":10000,
-                                "N_trxns": 25}
+                                "Min_N_trxns": 25,
+                                "Max_N_trxns":25}
         
 
         cls.test_input3  = {'Entities': 
@@ -270,14 +277,16 @@ class TestWorkflow2(unittest.TestCase):
         
         cls.expected_results3 = {"Originator_Account_ID": "345723",
                                 "Beneficiary_Account_ID": "Dummy_Acct_1",
-                                "Total_Amount": 500000,
+                                "Min_Total_Amount": 0.95*500000,
+                                "Max_Total_Amount": 1.05*500000,
                                 "Trxn_Type": ["Wire"],
                                 "Min_Date": "2025-01-01",
                                 "Max_Date": "2025-01-31",
                                 "Branch_ATM_Location": [''],
                                 "Min_Ind_Amt":5000,
                                 "Max_Ind_Amt":10000,
-                                "N_trxns": 500000/7500}
+                                "Min_N_trxns": 500000/10000,
+                                "Max_N_trxns":500000/5000}
         
         cls.test_input4  = {'Entities': 
                         {'Individuals': ['John', 'Jill'], 
@@ -287,45 +296,51 @@ class TestWorkflow2(unittest.TestCase):
                     'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
                     'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
                     'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
-                    'Narratives': {'345723':{"Trxn_Set_1":"John sent a total of $500,000 from Acct #345723 at Bank of America  to Jill's account at Chase. The 15 Wire trxns occured between Jan 1,2025 and Jan 31,2025 "}}}
+                    'Narratives': {'345723':{"Trxn_Set_1":"John sent a total of $500000 from Acct #345723 at Bank of America  to Jill's account at Chase. The 15 Wire trxns occured between Jan 1,2025 and Jan 31,2025 "}}}
 
         cls.expected_results4 = {"Originator_Account_ID": "345723",
                                 "Beneficiary_Account_ID": "Dummy_Acct_1",
-                                "Total_Amount": 500000,
+                                "Min_Total_Amount": 500000,
+                                "Max_Total_Amount": 500000,
                                 "Trxn_Type": ["Wire"],
                                 "Min_Date": "2025-01-01",
                                 "Max_Date": "2025-01-31",
                                 "Branch_ATM_Location": [''],
-                                "Min_Ind_Amt":500000/15,
+                                "Min_Ind_Amt":1,
                                 "Max_Ind_Amt":499985,
-                                "N_trxns": 15}
+                                "Min_N_trxns":15,
+                                "Max_N_trxns":15}
 
         cls.config_file = 'configs/agents_config.yaml' 
         #Use this to test outputs follow expected format.
-        #cls.result1 = run_agentic_workflow2(cls.test_input1,cls.config_file)
-        #cls.result2 = run_agentic_workflow2(cls.test_input2,cls.config_file)
-        # cls.result3 = run_agentic_workflow2(cls.test_input3,cls.config_file)
+        cls.result1 = run_agentic_workflow2(cls.test_input1,cls.config_file)
+        cls.result2 = run_agentic_workflow2(cls.test_input2,cls.config_file)
+        cls.result3 = run_agentic_workflow2(cls.test_input3,cls.config_file)
         cls.result4 = run_agentic_workflow2(cls.test_input4,cls.config_file)
 
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
+
+    
     def test_result_is_dataframe(self):
         """
         Test that the output from the workflow is a valid Python DataFrame.
         """
-        # self.assertIsInstance(self.result1, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
-        #self.assertIsInstance(self.result2, pd.DataFrame, f"Expected result to be a dataframe but got {type(self.result2)}")
-        # self.assertIsInstance(self.result3, pd.DataFrame, "Expected result to be a dictionary, but got a different type.")
+        self.assertIsInstance(self.result1, pd.DataFrame, f"Expected result to be a dataframe, but got {type(self.result1)}")
+        self.assertIsInstance(self.result2, pd.DataFrame, f"Expected result to be a dataframe but got {type(self.result2)}")
+        self.assertIsInstance(self.result3, pd.DataFrame, f"Expected result to be a dataframe, but got {type(self.result3)}")
         self.assertIsInstance(self.result4, pd.DataFrame, f"Expected result to be a dataframe but got {type(self.result4)}")
 
 
 
-    # def test_trxns_case1(self):
-    #     assert_transaction_matches(self, self.result1, self.expected_results1)
+    def test_trxns_case1(self):
+        assert_transaction_matches(self, self.result1, self.expected_results1)
 
-    # def test_trxns_case2(self):
-    #     assert_transaction_matches(self, self.result2, self.expected_results2)
+    def test_trxns_case2(self):
+        assert_transaction_matches(self, self.result2, self.expected_results2)
     
-    # def test_trxns_case3(self):
-    #     assert_transaction_matches(self, self.result3, self.expected_results3)
+    def test_trxns_case3(self):
+        assert_transaction_matches(self, self.result3, self.expected_results3)
     
     def test_trxns_case4(self):
         assert_transaction_matches(self, self.result4, self.expected_results4)

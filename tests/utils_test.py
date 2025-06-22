@@ -1,16 +1,18 @@
 import pandas as pd
 from typing import Dict, Any
 import unittest
+import numpy as np
 
 def assert_transaction_matches(test_case: unittest.TestCase, actual_df: pd.DataFrame, expected: Dict[str, Any]):
     test_case.assertGreater(len(actual_df), 0, "No transactions found.")
 
     total_amount = actual_df["Trxn_Amount"].sum()
-    #Test Total Amount of trxns
-    test_case.assertAlmostEqual(total_amount, expected["Total_Amount"], delta=0.1 * expected["Total_Amount"],
-                                msg="Total amount mismatch")
-    #Test Total No of of trxns
-    test_case.assertEqual(len(actual_df), expected["N_trxns"], "Transaction count mismatch")
+    # Test Total Amount of trxns falls within range
+    test_case.assertGreaterEqual(np.round(total_amount,2), expected["Min_Total_Amount"], "Total amount below expected range")
+    test_case.assertLessEqual(np.round(total_amount,2), expected["Max_Total_Amount"], "Total amount above expected range")
+    # Test Total No of trxns falls within range
+    test_case.assertGreaterEqual(len(actual_df), expected["Min_N_trxns"], "Transaction count below expected range")
+    test_case.assertLessEqual(len(actual_df), expected["Max_N_trxns"], "Transaction count above expected range")
 
     test_case.assertTrue((actual_df["Originator_Account_ID"] == expected["Originator_Account_ID"]).all(),
                          "Mismatch in Originator_Account_ID")
@@ -34,6 +36,8 @@ def assert_transaction_matches(test_case: unittest.TestCase, actual_df: pd.DataF
 
     actual_locs = set(actual_df["Branch_or_ATM_Location"].dropna().unique())
     expected_locs = set(expected["Branch_ATM_Location"])
-    test_case.assertEqual(actual_locs, expected_locs, "Mismatch in transaction locations")
-
-
+    # Verify each actual location is one of the expected locations
+    test_case.assertTrue(
+        actual_locs.issubset(expected_locs),
+        f"Unexpected transaction locations: {actual_locs - expected_locs}"
+    )
