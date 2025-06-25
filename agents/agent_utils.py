@@ -31,9 +31,6 @@ def choose_agent(narrative: str,agent_configs:dict) -> str:
     return resp.choices[0].message.content.strip()
 
 
-
-
-
 def make_router_schema(agents: dict) -> dict:
     """
     Build a function schema whose `agent` property enum
@@ -56,40 +53,35 @@ def make_router_schema(agents: dict) -> dict:
         }
     }
 
-def route_and_execute(agents:List,narrative:dict):
+def route(agents: dict, narrative: dict) -> str:
+    narrative_ = narrative["Narratives"]
+    narrative_text = json.dumps(narrative_, indent=2)
+    message = [{"role": "user", "content": narrative_text}]
+    router_agent = agents["Router_Agent"]
+    chosen_agent_name = router_agent.generate_reply(message)
+    logger.info(f"Agent chosen is: {chosen_agent_name}")
+    return chosen_agent_name
+
+def route_and_execute(agents:dict,narrative:dict):
     """
     Function to take the narrative to be synthesized, pass it to the router agent, get the recommended agent 
     and execute it to generate transactions
     """
 
-     # Get just the narrative to pass to the router
-    narrative_ = narrative["Narratives"]
+    # Determine which agent to use
+    chosen_agent_name = route(agents, narrative)
 
-    #Convert to text to pass to LLM
-    narrative_text = json.dumps(narrative_,indent =2)
-
-    #Get recommended agent from router
-    message = [{"role":"user","content":narrative_text}]
-    router_agent = agents["Router_Agent"]
-    chosen_agent_name = router_agent.generate_reply(message)
-    logger.info (f"Agent chosen is: {chosen_agent_name}")
-
+    # Prepare and send full narrative to the chosen agent
+    full_narrative = json.dumps(narrative, indent=2)
+    message = [{"role": "user", "content": full_narrative}]
     chosen_agent = agents[chosen_agent_name]
-
-    #Convert full narrative back to a string
-    full_narrative = json.dumps(narrative,indent =2)
-    message = [{"role":"user","content":full_narrative}]
-
-    #Get the required response from the chosen agent
     trxns = chosen_agent.generate_reply(message)
 
-    #If the agent returns a dictionary just return it
-    if isinstance(trxns,dict):
+    # Parse and return the transactions dictionary
+    if isinstance(trxns, dict):
         return trxns
-    else:
-        #If it returns a JSON convert to a dictionary and return it
-        try:
-            trxns_ = json.loads(trxns)
-            return trxns_
-        except json.JSONDecodeError:
-            print("Not a valid JSON")
+    try:
+        return json.loads(trxns)
+    except json.JSONDecodeError:
+        print("Not a valid JSON")
+        return {}

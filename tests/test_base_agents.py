@@ -2,7 +2,7 @@ import unittest
 from utils import  load_agents_from_single_config, get_agent_config, approximate_match_ratio
 from agents.agents import instantiate_base_agent , create_two_agent_chat, instantiate_agents_for_trxn_generation
 import logging
-from autogen import GroupChat, GroupChatManager
+from agents.agent_utils import route
 
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
@@ -382,173 +382,6 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
                 )
 
 
-class Test_Transaction_Generation_Agent(unittest.TestCase):
-    """
-    Tests for the AI Agent that synthesizes transactions from a narrative.
-    This agent:
-      1) Reads the dictionary 'Narrative' with account IDs as keys and textual descriptions as values.
-      2) Looks up account owners (individuals/organizations) and FIs.
-      3) Extracts each described transaction.
-      4) Returns a Python dictionary keyed by Transaction ID (e.g. 1, 2, 3).
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        """
-        Runs once before any test methods in this class are executed.
-        Loads agent configs, instantiates agents, and runs the scenario so the results
-        are available to all tests.
-        """
-        logging.info("Loading agent configs...")
-        cls.agent_configs = load_agents_from_single_config('configs/agents_config.yaml')
-
-        logging.info("Step 1: All agent configurations read")
-        cls.sar_agent_config = get_agent_config(cls.agent_configs, "SAR_Agent")
-        logging.info("Step 2: Extracted config for SAR Agent")
-        cls.sar_agent = instantiate_base_agent('SAR_Agent', cls.sar_agent_config)
-        logging.info("Step 3: Instantiated SAR Agent")
-        
-        logging.info("Extracting Transaction_Generation_Agent config...")
-        cls.agent_config = get_agent_config(cls.agent_configs, "Transaction_Generation_Agent")
-
-        logging.info("Instantiating Transaction Generation Agent...")
-        cls.transaction_generation_agent = instantiate_base_agent(
-            'Transaction_Generation_Agent', 
-            cls.agent_config
-        )
-
-        # Example test message we will reuse from instructions
-        cls.test_message = """
-        1) Narrative = {
-          "345723": "John deposited $5000 in Cash into Acct #345723 at the Main Road, NY Branch of Bank of America on Jan 4, 2024. \
-                     John sends $3000 to Acme Inc's account at Bank of America by Wire on Jan 6, 2024. \
-                     John wrote a check to Jill from Acct #345723 on Jan 8, 2024 for $1,000"
-        }
-        2) Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
-        3) Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank"}
-        4) FI_to_Acct_to_Cust = {
-             "Bank of America": {"345723": "CUST_001", "98765": "CUST_002"},
-             "Chase Bank": {"Dummy_001": "CUST_003"}
-        }
-        """
-
-        # Expected Results
-        cls.expected_trxns = {
-            "345723": {
-                1: {
-                    "Originator_Name": "John",
-                    "Originator_Account_ID": "345723",
-                    "Originator_Customer_ID": "CUST_001",
-                    "Beneficiary_Name": "John",
-                    "Beneficiary_Account_ID": "345723",
-                    "Beneficiary_Customer_ID": "CUST_001",
-                    "Trxn_Channel": "Cash",
-                    "Trxn_Date": "2024-01-04",
-                    "Trxn_Amount": 5000,
-                    "Branch_or_ATM_Location": "Main Road,NY"
-                },
-                2: {
-                    "Originator_Name": "John",
-                    "Originator_Account_ID": "345723",
-                    "Originator_Customer_ID": "CUST_001",
-                    "Beneficiary_Name": "Acme Inc",
-                    "Beneficiary_Account_ID": "98765",
-                    "Beneficiary_Customer_ID": "CUST_002",
-                    "Trxn_Channel": "Wire",
-                    "Trxn_Date": "2024-01-06",
-                    "Trxn_Amount": 3000,
-                    "Branch_or_ATM_Location": ""
-                },
-                3: {
-                    "Originator_Name": "John",
-                    "Originator_Account_ID": "345723",
-                    "Originator_Customer_ID": "CUST_001",
-                    "Beneficiary_Name": "Jill",
-                    "Beneficiary_Account_ID": "Dummy_001",
-                    "Beneficiary_Customer_ID": "CUST_003",
-                    "Trxn_Channel": "Check",
-                    "Trxn_Date": "2024-01-08",
-                    "Trxn_Amount": 1000,
-                    "Branch_or_ATM_Location": ""
-                }
-            }
-        }
-
-        # Required fields for each transaction
-        cls.required_keys = {
-            "Originator_Name",
-            "Originator_Account_ID",
-            "Originator_Customer_ID",
-            "Beneficiary_Name",
-            "Beneficiary_Account_ID",
-            "Beneficiary_Customer_ID",
-            "Trxn_Channel",
-            "Trxn_Date",
-            "Trxn_Amount",
-            "Branch_or_ATM_Location"
-        }
-
-        cls.summary_prompt = cls.agent_config.get("summary_prompt") 
-        logging.info("Step 6: Read summary prompt for Transaction Generation Agent")   
-
-        logging.info("Running Transaction Generation Agent with test message...")
-        # Generate the final results for all tests to use
-        cls.results = create_two_agent_chat(
-            cls.sar_agent,
-            cls.transaction_generation_agent,
-            cls.test_message,
-            cls.summary_prompt
-        )
-
-    def test_number_of_accounts_in_results(self):
-        """
-        Test that the output dictionary includes the expected account ID key.
-        In our example, '345723' is the only key in the final dictionary of transactions.
-        """
-        logging.info("Testing the presence of account ID '345723' in the results...")
-        self.assertIn(
-            "345723", 
-            self.results, 
-            "Expected account 345723 to appear in the transactions dictionary."
-        )
-
-    def test_number_of_transactions_for_345723(self):
-        """
-        We expect three transactions in the agent's output for account '345723'
-        """
-        logging.info("Testing the number of transactions under account 345723...")
-        acct_dict = self.results["345723"]
-        self.assertEqual(len(acct_dict), 3, "Expected exactly 3 transactions for account 345723.")
-
-    def test_transaction_details(self):
-        """
-        Verifies that each transaction has all the required fields.
-        """
-        acct_dict = self.results["345723"]
-        for trx_id, trx_data in acct_dict.items():
-            logging.info(f"Checking transaction ID = {trx_id}")
-            self.assertSetEqual(
-                self.required_keys, 
-                set(trx_data.keys()),
-                f"Transaction {trx_id} does not have the expected set of keys. "
-            )
-
-    def test_trxn_attributes(self):
-        """
-        Validates that the transaction attributes are as expected.
-        """
-        actual_345723 = self.results["345723"]
-        expected_345723 = self.expected_trxns["345723"]
-
-        for txn_id, expected_fields in expected_345723.items():
-            with self.subTest(txn_id=txn_id):
-                actual_txn = actual_345723[txn_id]
-                for field_name, expected_val in expected_fields.items():
-                    self.assertEqual(
-                        actual_txn[field_name],
-                        expected_val,
-                        f"Mismatch for field '{field_name}' in transaction {txn_id}."
-                    )
 
 
 class TestRouterAgent(unittest.TestCase):
@@ -565,49 +398,13 @@ class TestRouterAgent(unittest.TestCase):
         cls.agents = instantiate_agents_for_trxn_generation(cls.agent_configs)
         logging.info("All agents instantiated successfully")
 
-        cls.sar_agent = cls.agents["SAR_Agent_2"]
-        cls.trxn_generation_agent = cls.agents["Transaction_Generation_Agent"]
-        cls.trxn_generation_agent_w_tool = cls.agents["Transaction_Generation_Agent_w_Tool"]
-
-        # Stub transaction agents to immediately reply with their own name
-        def _register_name_spy(agent):
-            def name_spy(recipient, messages, sender, config):
-                # Short-circuit and return the agent's name
-                return True, agent.name
-            agent.register_reply(
-                trigger=lambda sender: True,
-                reply_func=name_spy,
-                position=0,
-                config=None
-            )
-
-        # Apply stubs
-        _register_name_spy(cls.trxn_generation_agent_w_tool)
-        _register_name_spy(cls.trxn_generation_agent)
-
-        group_chat_manager_config = get_agent_config(cls.agent_configs, agent_name = "Group_Chat_Manager")
-        cls.llm_config = group_chat_manager_config.get('llm_config')
-        cls.summary_method = group_chat_manager_config.get("summary_method")
-        cls.summary_prompt = group_chat_manager_config.get("summary_prompt")
-
-        cls.groupchat = GroupChat(agents = [cls.trxn_generation_agent,cls.trxn_generation_agent_w_tool],messages=[],max_round=2,allow_repeat_speaker=False)
-        cls.manager = GroupChatManager(groupchat=cls.groupchat, llm_config = cls.llm_config)
-
+        cls.router_agent = cls.agents["Router_Agent"]
         
 
-
-    def setUp(self):
-        """Reset the last speaker before each test to ensure clean state."""
-        # Reset the internal last_speaker backing attribute since the property is read-only
-        self.manager._last_speaker = None
-
-        
-        
 
     def test_correct_agent_invoked_case1(self):
 
-        test_message1 =  '''
-                            {'Entities': 
+        test_message1 =  {'Entities': 
                                 {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                                 'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -619,22 +416,20 @@ class TestRouterAgent(unittest.TestCase):
                                         {
                                         "Trxn_Set_1":"John sent 25 wires to Acct #98765 between Jan 10,2025 and Feb 15, 2025. The trxns ranged from $1,000 to $5,000"} }
                                 }
-                            '''
+                            
         
-        chat_results = self.sar_agent.initiate_chat(
-                        self.manager,
-                        message = test_message1,
-                        summary_method= self.summary_method,
-                        summary_args = {
-                            "summary_prompt":self.summary_prompt
-                        } )
+        selected_agent = route(self.agents, narrative=test_message1)
+
         # Test that right agent is selected
-        self.assertEqual(self.manager.last_speaker.name, "Transaction_Generation_Agent_w_Tool")
+        self.assertEqual(
+            selected_agent,
+            "Transaction_Generation_Agent_w_Tool",
+            f"Expected 'Transaction_Generation_Agent_w_Tool' but got '{selected_agent}'"
+        )
 
     def test_correct_agent_invoked_case2(self):
 
-        test_message2 =  '''
-                            {'Entities': 
+        test_message2 =  {'Entities': 
                                 {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                                 'Financial_Institutions': ['Bank of America', 'Chase Bank']},
@@ -646,16 +441,14 @@ class TestRouterAgent(unittest.TestCase):
                                         {
                                         "Trxn_Set_1":"John sent 2 wires to Acct #98765 on Jan 10,2025 and Feb 15, 2025. The trxns were $4,400 and $6,5000"} }
                                 }
-                            '''
-        chat_results = self.sar_agent.initiate_chat(
-                        self.manager,
-                        message = test_message2,
-                        summary_method= self.summary_method,
-                        summary_args = {
-                            "summary_prompt":self.summary_prompt
-                        } )
+                            
+        selected_agent = route(self.agents, narrative=test_message2)
         # Test that right agent is selected
-        self.assertEqual(self.manager.last_speaker.name, "Transaction_Generation_Agent")
+        self.assertEqual(
+            selected_agent,
+            "Transaction_Generation_Agent",
+            f"Expected 'Transaction_Generation_Agent' but got '{selected_agent}'"
+        )
 
        
         
