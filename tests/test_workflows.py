@@ -1,9 +1,7 @@
 import unittest
 import logging
-from contextlib import redirect_stdout
-from unittest.mock import patch
 from agents.workflows import run_agentic_workflow1, run_agentic_workflow2
-from utils import  compare_dicts, assert_dict_structure
+from utils import  assert_dict_structure
 import pandas as pd
 from typing import Dict, Any
 from tests.utils_test import assert_transaction_matches
@@ -345,4 +343,5 @@ class TestWorkflow2(unittest.TestCase):
     def test_trxns_case4(self):
         assert_transaction_matches(self, self.result4, self.expected_results4)
 
- 
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
