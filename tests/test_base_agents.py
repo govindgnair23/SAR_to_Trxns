@@ -8,7 +8,6 @@ from agents.agent_utils import route
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-## Todo : Need to change the setUp to setUp class. 
 
 class Test_Entity_Extraction_Agent(unittest.TestCase):
     '''
@@ -147,12 +146,13 @@ class Test_Entity_Resolution_Agent(unittest.TestCase):
           - Each account is assigned correctly to its FI.
           - Multiple accounts owned by the same customer in one FI share the same CUST ID.
         """
-        results = self.results_dict1
+        results = self.results_dict1["FI_to_Acct_to_Cust"]
+        results_fis = results.keys()
         
         # 1) The final result should contain these three institutions
-        self.assertIn("Bank of America", results, "Expected 'Bank of America' in the result.")
-        self.assertIn("Chase Bank", results, "Expected 'Chase Bank' in the result.")
-        self.assertIn("Dummy_Bank_1", results, "Expected 'Dummy_Bank_1' in the result.")
+        self.assertIn("Bank of America", results_fis, "Expected 'Bank of America' in the result.")
+        self.assertIn("Chase Bank", results_fis, "Expected 'Chase Bank' in the result.")
+        self.assertIn("Dummy_Bank_1", results_fis, "Expected 'Dummy_Bank_1' in the result.")
 
         # 2) Check accounts for Bank of America
         boa_mapping = results["Bank of America"]
@@ -218,20 +218,22 @@ class Test_Entity_Resolution_Agent(unittest.TestCase):
             message,
             self.summary_prompt
         )
+
+        results_ = results["FI_to_Acct_to_Cust"]
         # Check presence of FIs
-        self.assertIn("AlphaBank", results)
-        self.assertIn("BetaBank", results)
+        self.assertIn("AlphaBank", results_)
+        self.assertIn("BetaBank", results_)
         
         # AlphaBank should have C1, C2 => Fred, Gina
-        alpha_accts = list(results["AlphaBank"].keys())
+        alpha_accts = list(results_["AlphaBank"].keys())
         self.assertCountEqual(alpha_accts, ["C1", "C2"], "AlphaBank should only have accounts C1 and C2.")
-        alpha_ids = set(results["AlphaBank"].values())
+        alpha_ids = set(results_["AlphaBank"].values())
         self.assertEqual(len(alpha_ids), 2, "Expected two unique customer IDs (Fred, Gina) at AlphaBank.")
 
         # BetaBank should have C3, C4, C5 => Fred, HedgeFund LLC, Gina
-        beta_accts = list(results["BetaBank"].keys())
+        beta_accts = list(results_["BetaBank"].keys())
         self.assertCountEqual(beta_accts, ["C3", "C4", "C5"], "BetaBank should have accounts C3, C4, and C5.")
-        beta_ids = set(results["BetaBank"].values())
+        beta_ids = set(results_["BetaBank"].values())
         self.assertEqual(len(beta_ids), 3, "Expected three unique customer IDs at BetaBank.")
 
 
@@ -265,14 +267,18 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
         3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America",
                           "Dummy_Acct_1":"Chase Bank","98765":"Dummy_Bank_1"}
         4) Narrative:
-           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
+           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . 
+           John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025.
+            Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  
+            then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
         """
 
         cls.expected_dict1 = {
             "345723": 
-                { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025", 
-                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at  Chase on Jan 15,2025" },
-            "98765":   {"Trxn_Set_1": "John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025" } ,
+                { "Trxn_Set_1": "John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 1, 2025", 
+                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025" },
+            "98765":   {"Trxn_Set_1": " John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025",
+                        "Trxn_Set_2": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025"} ,
             "12345":  {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
             "99999":  {'Trxn_Set_1': 'John deposited $5000 each in Cash into Acct #99999 at Bank of America on Jan 1, 2025.',
                        'Trxn_Set_2': 'John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025.'},
@@ -450,9 +456,8 @@ class TestRouterAgent(unittest.TestCase):
        
         
 
-
-
-
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
 
 
 
