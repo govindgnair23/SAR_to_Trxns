@@ -52,7 +52,8 @@ agents:
 
       Record this as a dictionary named Entities.
 
-      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":["Chase"," Bank of America", "Chase Bank"]}}
+      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":["Chase"," Bank of America", "Chase Bank"]}}.
+      If missing, use a list with an empty string e.g. [""]
 
       Step 2) Chase and Chase Bank refer to the same entity. Refer to this entity as Chase Bank as this is a more descriptive name.
 
