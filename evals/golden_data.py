@@ -168,18 +168,17 @@ sars = [
             "Artsy Bank"
         ]
         },
-        gold_account_ids=[  "54321098","12345678","689472","Dummy_Acct_1"],
+        gold_account_ids=[  "54321098","12345678","689472","456781234"],
         gold_acct_to_fi={
             "54321098": "Bank of Mainland",
             "12345678": "Bank of Mainland",
-            "689472": "Bank XYZ",
-            "Dummy_Acct_1": "Dummy_Bank_1"
+            "689472": "Bank XYZ"
         },
         gold_acct_to_cust={
            "54321098": "Sky Corporation",
             "12345678": "Sea Corporation",
            "689472": "Tolinka Inc.",
-           "Dummy_Acct_1": "Dummy_Customer_1"
+           "456781234": "Paul Lafonte"
         },
         gold_fi_to_acct_to_cust = {
         "Bank of Mainland": {
@@ -188,9 +187,6 @@ sars = [
         },
         "Bank XYZ": {
             "689472": "Tolinka Inc."
-        },
-        "Dummy_Bank_1": {
-            "Dummy_Acct_1": "Dummy_Customer_1"
         }
             },
 
@@ -227,8 +223,8 @@ sars = [
 expected_trxns = {
 "sar_train1": 
     {"Trxn_Set_1":
-         {"Originator_Account_ID": "12345-6789",
-          "Beneficiary_Account_ID": "12345-6789",
+         {"Originator_Account_ID": "123456789",
+          "Beneficiary_Account_ID": "123456789",
           "Total_Amount": 50000,
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
@@ -239,7 +235,7 @@ expected_trxns = {
           "N_trxns": 13}
         ,
      "Trxn_Set_2":
-        {"Originator_Account_ID": "12345-6789",
+        {"Originator_Account_ID": "123456789",
           "Beneficiary_Account_ID": "3489728",
           "Total_Amount": 225000,
           "Trxn_Type": ["Wire"],
@@ -252,8 +248,8 @@ expected_trxns = {
         },
 
      "Trxn_Set_3":
-        {"Originator_Account_ID": "23456-7891",
-          "Beneficiary_Account_ID": "23456-7891",
+        {"Originator_Account_ID": "234567891",
+          "Beneficiary_Account_ID": "234567891",
           "Total_Amount": 275000,
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
