@@ -37,6 +37,11 @@ class Test_Entity_Extraction_Agent(unittest.TestCase):
         logging.info("Step 6: Read summary prompt for Entity Extraction Agent")         
         cls.results_dict1 = create_two_agent_chat(cls.sar_agent, cls.entity_extraction_agent, cls.message1, cls.summary_prompt)
 
+
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
+
+
     def test_output_elements(self):
         '''
         Test  all output elements have been extracted.
@@ -137,6 +142,10 @@ class Test_Entity_Resolution_Agent(unittest.TestCase):
         cls.summary_prompt = cls.agent_config.get("summary_prompt") 
         logging.info("Step 6: Read summary prompt for Entity Resolution Agent")
         cls.results_dict1 = create_two_agent_chat(cls.sar_agent, cls.entity_resolution_agent, cls.message1, cls.summary_prompt)
+
+
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
 
     def test_base_case(self):
         """
@@ -297,6 +306,9 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
         results = create_two_agent_chat(cls.sar_agent,cls.narrative_extraction_agent,cls.message1,cls.summary_prompt)
         cls.results_dict1 = results["Narratives"]
 
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
+
     def test_output_format(self):
         """
         Validate the narrative extraction agent is outputting results in the right format
@@ -402,6 +414,9 @@ class TestRouterAgent(unittest.TestCase):
         logging.info("All agents instantiated successfully")
 
         cls.router_agent = cls.agents["Router_Agent"]
+
+    def setUp(self):
+        logging.info(f"Running {self.__class__.__name__}.{self._testMethodName}")
         
 
 

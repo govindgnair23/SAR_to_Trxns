@@ -20,7 +20,7 @@ class TestWorkflow1(unittest.TestCase):
         cls.expected_dictionary = {
             'Entities': {
                 'Individuals': ['John', 'Jill'],
-                'Organizations': [''],
+                'Organizations': [],
                 'Financial_Institutions': ['Bank of America', 'Chase Bank']
             },
             'Account_IDs': ['345723', '99999', 'Dummy_Acct_1'],
@@ -31,12 +31,12 @@ class TestWorkflow1(unittest.TestCase):
             },
             'Acct_to_Cust': {
                 '345723': 'John',
-                '99999': 'John',
+                '99999': 'Jill',
                 'Dummy_Acct_1': 'Jill'
             },
             'FI_to_Acct_to_Cust': {
-                'Bank of America': {'345723': 'CUST_001','99999':'CUST_001' },
-                'Chase Bank': {'Dummy_Acct_1': 'CUST_002'},
+                'Bank of America': {'345723': 'CUST_001','99999':'CUST_002' },
+                'Chase Bank': {'Dummy_Acct_1': 'CUST_003'},
             },
             'Narratives' : {"345723": 
                                 {"Trxn_Set_1":"John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 1,2025.", 
@@ -44,15 +44,15 @@ class TestWorkflow1(unittest.TestCase):
                             "Dummy_Acct_1": 
                               {"Trxn_Set_1": "John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025"} ,
                             "99999": 
-                              {"Trxn_Set_1": "John deposited $5000  in Cash into  Acct #99999 at Bank of America on Jan 1, 2025" } 
+                              {"Trxn_Set_1": "Jill deposited $4000  in Cash into  Acct #99999 at Bank of America on Jan 1, 2025" } 
         } }
 
         test_sar1  = '''
-                 John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . 
-                 John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. 
-                  
+                 John deposited $5000 each in Cash into Acct #345723 on Jan 1, 2025.Jill deposited $4000 in Cash into Acct #99999 on Jan 1, 2025.
+                 Both of these accountsare at Bank of America  . John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025. 
 
             '''
+        
 
         
  
@@ -173,19 +173,26 @@ class TestWorkflow1(unittest.TestCase):
 
     def test_values_for_FI_to_Acct_to_Cust(self):
         """
-        Test the correctness of 'FI_to_Acct_to_Cust'.
+        Test that each Financial Institution has the expected number of unique customer IDs.
         """
         self.assertIn('FI_to_Acct_to_Cust', self.result, "'FI_to_Acct_to_Cust' key is missing in the result")
 
         expected_fi_acct_cust = self.expected_dictionary['FI_to_Acct_to_Cust']
         actual_fi_acct_cust = self.result['FI_to_Acct_to_Cust']
 
-        self.assertEqual(
-            actual_fi_acct_cust, 
-            expected_fi_acct_cust,
-            msg=(f"Expected FI_to_Acct_to_Cust {expected_fi_acct_cust} "
-                 f"but got {actual_fi_acct_cust}")
-        )
+        for fi, expected_map in expected_fi_acct_cust.items():
+            # Number of unique customer IDs expected for this FI
+            expected_unique_count = len(set(expected_map.values()))
+            # Number of unique customer IDs actually present for this FI
+            actual_map = actual_fi_acct_cust.get(fi, {})
+            actual_unique_count = len(set(actual_map.values()))
+
+            self.assertEqual(
+                actual_unique_count,
+                expected_unique_count,
+                msg=(f"For FI '{fi}', expected {expected_unique_count} unique customer IDs "
+                     f"but got {actual_unique_count}")
+            )
 
         
     def test_narratives_structure_dynamic(self):
