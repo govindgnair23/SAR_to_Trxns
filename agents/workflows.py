@@ -9,6 +9,7 @@ import logging
 import json
 import pandas as pd
 import copy
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = logging.getLogger(__name__)
 
@@ -127,19 +128,28 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
     logger.info(f"No of sub-narratives created: {len(sub_narratives)}")
 
     ### Call the agentic workflow repeatedly for each transaction set and concatenate the results   ###
-    trxn_df_list = [] #List of generated trxn dataframes
-    for i,sub_narrative in enumerate(sub_narratives): 
-        
-        results_dict = route_and_execute(agents,sub_narrative)
+    trxn_df_list = [] # List of generated trxn dataframes
 
-        output_file = generate_dynamic_output_file_name(filename="trxns_dict",output_file_type="json",
-                                                    output_folder="./data/output")
-        write_data_to_file(results_dict,output_file)
+    # Helper to process one sub-narrative
+    def _process_sub_narrative(i: int, sub_narrative: Dict) -> pd.DataFrame:
+        results_dict = route_and_execute(agents, sub_narrative)
+        output_file = generate_dynamic_output_file_name(
+            filename="trxns_dict",
+            output_file_type="json",
+            output_folder="./data/output"
+        )
+        write_data_to_file(results_dict, output_file)
+        logger.info(f"Results from chosen Transaction Generation Agent for Sub narrative {i+1} has been generated")
+        return convert_dict_to_df(i+1, results_dict)
 
-        logger.info(f"Results from  chosen Transaction Generation Agent for Sub narrative {i+1} has been generated")
-
-        trxn_df = convert_dict_to_df(i+1,results_dict)
-        trxn_df_list.append(trxn_df)
+    # Execute sub-narrative processing asynchronously
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {
+            executor.submit(_process_sub_narrative, i, sn): i
+            for i, sn in enumerate(sub_narratives)
+        }
+        for future in as_completed(futures):
+            trxn_df_list.append(future.result())
 
     # Concatenate to get a single dataframe with trxns for all trxns sets
     if trxn_df_list:
