@@ -6,30 +6,6 @@ import logging
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def choose_agent(narrative: str,agent_configs:dict) -> str:
-    """
-     Router that returns exactly one of:
-      - "Simple_Agent"
-      - "Tool_Agent"
-    based on the complexity of the narrative
-    """
-
-    router_config = get_agent_config(agent_configs, agent_name = "Router")
-    model= router_config.get('model')
-    instructions = router_config.get("system_message")
-    resp = openai.chat.completions.create(
-        model=model,
-        temperature=0,
-        messages=[
-            {"role":"system","content":(
-                instructions
-            )},
-            {"role":"user","content": narrative},
-        ],
-        max_tokens=5,
-    )
-    return resp.choices[0].message.content.strip()
-
 
 def make_router_schema(agents: dict) -> dict:
     """

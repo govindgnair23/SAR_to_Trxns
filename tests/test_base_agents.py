@@ -468,6 +468,30 @@ class TestRouterAgent(unittest.TestCase):
             f"Expected 'Transaction_Generation_Agent' but got '{selected_agent}'"
         )
 
+
+    def test_correct_agent_invoked_case3(self):
+
+        test_message3 =  {'Entities': 
+                                {'Individuals': ['John', 'Jill'], 
+                            'Organizations': ['Acme Inc'], 
+                                'Financial_Institutions': ['Bank of America', 'Chase Bank']},
+                                'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                                'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
+                                'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
+                                'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
+                                'Narratives' : {"345723": 
+                                        {
+                                        "Trxn_Set_1":"Checks for $9,800 were issued and subsequently deposited at Bank of America on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the cash is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."} }
+                                }
+                            
+        selected_agent = route(self.agents, narrative=test_message3)
+        # Test that right agent is selected
+        self.assertEqual(
+            selected_agent,
+            "Transaction_Generation_Agent",
+            f"Expected 'Transaction_Generation_Agent' but got '{selected_agent}'"
+        )
+
        
         
 

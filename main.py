@@ -29,8 +29,8 @@ def generate_transactions_from_text(sar_text: str) -> pd.DataFrame:
     api_key = os.getenv("OPEN_API_KEY")
     config_file = 'configs/agents_config.yaml'
 
-    # Simulate loading/parsing SAR for demo
-    # Replace this with actual parser for SAR -> entities
+    #Simulate loading/parsing SAR for demo
+    #Replace this with actual parser for SAR -> entities
     # results1_p1 = {'Entities': 
     #                         {'Individuals': ['John', 'Jill'], 
     #                         'Organizations': ['Acme Inc'], 
@@ -47,13 +47,13 @@ def generate_transactions_from_text(sar_text: str) -> pd.DataFrame:
     logger.info("Ran first workflow to extract entites")
     results2 = run_agentic_workflow2(input =results1, config_file=config_file)
     logger.info("Ran second workflow to generate transactions")
-    return results2
+    return results1,results2
 
 
 def main(filename):
     sar_text = read_file(filename)
-    logging.info("Read SAR file")
-    df = generate_transactions_from_text(sar_text)
+    logger.info("Read SAR file")
+    _,df = generate_transactions_from_text(sar_text)
     write_data_to_file(df)
     return df
 
