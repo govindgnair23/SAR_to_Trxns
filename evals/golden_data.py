@@ -34,7 +34,7 @@ class SAR:
             "Account_IDs":self.gold_account_ids,
             "Acct_to_FI" : self.gold_acct_to_fi,
             "Acct_to_Cust": self.gold_acct_to_cust,
-            'FI_to_Acct_to_Cust': self.gold_acct_to_cust,
+            'FI_to_Acct_to_Cust': self.gold_fi_to_acct_to_cust,
             'Narratives': self.gold_narrative
         }
 

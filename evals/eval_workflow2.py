@@ -29,11 +29,12 @@ if __name__ == "__main__":
     root_logger.addHandler(console_handler)
   
     #Restrict to just first sar for testing
-    sars = sars[:1]
+    #sars = sars[:1]
     
     # Get predicted trxns for each sar extract   
     sar_trxn_metrics = []
     sar_timings = []
+    total_start_time = time.time()
     for idx, sar in enumerate(sars):
         # Start timing this SAR iteration
         start_time = time.time()
