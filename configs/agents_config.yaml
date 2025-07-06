@@ -526,7 +526,7 @@ agents:
       Example 2:
 
       ---
-      Narratives = {"98765": {"Trxn_Set_1":"John sends 2 Wires  to Acme Inc's account at Bank of America  on Jan 1,2024 and Jan 8, 2024. The Wires were for $3000 and $7000. He also wrote a check. John also issued a check payable to Acme Inc in the amount of $4,000 on Jan 5, 2024”"}
+      Narratives = {"98765": {"Trxn_Set_1":"John sends 2 Wires  to Acme Inc's account at Bank of America  on Jan 1,2024 and Jan 8, 2024. The Wires were for $3000 and $7000.  John also issued a check payable to Acme Inc in the amount of $4,000 on Jan 5, 2024 and deposited at Bank of America”"}
   
 
       Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}

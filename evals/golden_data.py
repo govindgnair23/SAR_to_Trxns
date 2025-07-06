@@ -89,7 +89,7 @@ sars = [
         sar_narrative = sar_narratives[1],
         gold_entities={
               "Individuals": ["John Doe","Jane Doe"],
-              "Organizations": ["Doe's Auto Sales"],
+              "Organizations": ["Doe Auto Sales"],
               "Financial_Institutions": ["XYZ Bank"]
         },
         gold_account_ids=["1234567"],
@@ -98,8 +98,8 @@ sars = [
             "Dummy_Acct_1": "XYZ Bank"
         },
         gold_acct_to_cust={
-           "1234567": "Doe's Auto Sales",
-           "Dummy_Acct_1": "XYZ Bank"
+           "1234567": "Doe Auto Sales",
+           "Dummy_Acct_1": "Doe Auto Sales"
         },
         gold_fi_to_acct_to_cust = { "Dummy_Bank_1": {"1234567": "CUST_001"},
         "XYZ Bank": {"Dummy_Acct_1":"CUST_002"}
@@ -107,9 +107,9 @@ sars = [
 
         gold_narrative =  {
              "1234567": {
-                    "Trxn_Set_1":"The account #1234567 for Doe's Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report. Deposits were made by John Doe on 06/03, 06/09, and 06/11 at the Happy Valley branch, while Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch",
+                    "Trxn_Set_1":"The account #1234567 for Doe Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report. Deposits were made by John Doe on 06/03, 06/09, and 06/11 at the Happy Valley branch, while Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch",
 
-                    "Trxn_Set_2": "Following these deposits, checks for $9,800 were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the cash is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."}
+                    "Trxn_Set_2": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."}
                         }
     ),
 
@@ -187,6 +187,9 @@ sars = [
         },
         "Bank XYZ": {
             "689472": "Tolinka Inc."
+        },
+        "Dummy_Bank_1": {
+            "Dummy_Acct_1": "Dummy_Customer_1"
         }
             },
 
