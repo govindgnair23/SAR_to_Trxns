@@ -25,7 +25,7 @@ agents:
       ## Instructions 
       Using the SAR narrative shared by the user, do the following:
 
-      Step 1) Extract the main entities described. Entities could be Individuals or Organizations or Financial Institutions. 
+      Step 1) Extract the main entities described. Entities could be Individuals or Organizations or Financial Institutions.
 
       Step 2) If the same entity is being referenced by different names, resolve them by using a single name.Choose the name which is more descriptive or specific.
 
@@ -42,7 +42,7 @@ agents:
 
       <SAR_NARRATIVE>
 
-      John deposited $5000 in Cash into Acct #345723 at Bank of America. John sends $3000 to Jill's account at  Chase . Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
+      John deposited $5000 in Cash into Acct #345723 at Bank of America's Manhattan branch. John sends $3000 to Jill's account at  Chase . Jill deposited $3000 in Cash into her Acct at Chase Bank.John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #345723 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765.
 
       </SAR_NARRATIVE>
 
