@@ -157,10 +157,10 @@ if uploaded_file is not None:
 
     if st.button("Generate Transactions"):
         with st.spinner("Generating synthetic transactions..."):
-            #entities,df = generate_transactions_from_text(sar_text)
-            with open("./data/output/results_entity_metrics_20250615_111432.json", "r") as f:
-                entities = json.load(f)
-            df = pd.read_csv("./data/output/results_trxns_20250615_111446.csv")
+            entities,df = generate_transactions_from_text(sar_text)
+            # with open("./data/output/results_entity_metrics_20250615_111432.json", "r") as f:
+            #     entities = json.load(f)
+            # df = pd.read_csv("./data/output/results_trxns_20250615_111446.csv")
 
         st.success("Done!")
 
