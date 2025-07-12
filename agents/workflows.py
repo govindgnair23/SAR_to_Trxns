@@ -157,6 +157,9 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         #Drop duplicate rows as same narratived could be attributes to two account ids (Originator and Beneficary)
         trxns_df_final = trxns_df_final.drop_duplicates()
         trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
+        #Replace missing Originator and Beneficary accunt IDS with None
+        trxns_df_final["Originator_Account_ID"] = trxns_df_final["Originator_Account_ID"].fillna("")
+        trxns_df_final["Beneficiary_Account_ID"] = trxns_df_final["Beneficiary_Account_ID"].fillna("")
     else:
         logger.warning("No transaction dataframes were generated. Returning empty dataframe.")
         trxns_df_final = pd.DataFrame()
