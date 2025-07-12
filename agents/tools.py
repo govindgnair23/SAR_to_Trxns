@@ -72,8 +72,14 @@ def generate_transactions(
         except (TypeError, ValueError):
             raise ValueError(f"N_transactions must be an integer or None, got {N_transactions!r}")
 
-    Start_Date = datetime.strptime(Start_Date,"%Y-%m-%d")
-    End_Date = datetime.strptime(End_Date,"%Y-%m-%d")
+    if Start_Date:
+        Start_Date = datetime.strptime(Start_Date, "%Y-%m-%d")
+    else:
+        Start_Date = None
+    if End_Date:
+        End_Date = datetime.strptime(End_Date, "%Y-%m-%d")
+    else:
+        End_Date = None
 
 
     
@@ -175,9 +181,12 @@ def generate_transactions(
         
     # Sample channels and dates once N_transactions is finalized
     trxn_channels = random.choices(Trxn_Channel, k=N_transactions)
-    sample_deltas = random.choices(range((End_Date - Start_Date).days), k=N_transactions)
-    trxn_dates = [Start_Date + timedelta(delta) for delta in sample_deltas]
-    trxn_dates = [d.strftime("%Y-%m-%d") for d in trxn_dates]
+    if Start_Date and End_Date:
+        sample_deltas = random.choices(range((End_Date - Start_Date).days), k=N_transactions)
+        trxn_dates = [Start_Date + timedelta(delta) for delta in sample_deltas]
+        trxn_dates = [d.strftime("%Y-%m-%d") for d in trxn_dates]
+    else:
+        trxn_dates = [""] * N_transactions
 
     # Handle list of locations by sampling one per transaction
     if isinstance(Branch_or_ATM_Location, list):
