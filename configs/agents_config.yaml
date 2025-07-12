@@ -444,9 +444,9 @@ agents:
 
       b) Note the key of the dictionary "Narratives". This should be the originator or beneficiary account of the trxns.
 
-      c) Identify the entity receiving the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to Identify the Account ID of the account receiving the trxn (i.e. Beneficiary_Account_ID), the Customer ID corresponding to the account (i.e. Beneficiary_Customer_ID),the Beneficiary_Name which is the Individual Or Organization who is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
+      c) Identify the entity receiving the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to Identify the Account ID of the account receiving the trxn (i.e. Beneficiary_Account_ID), the Customer ID corresponding to the account (i.e. Beneficiary_Customer_ID),the Beneficiary_Name which is the Individual Or Organization who is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary (both Name and ID) are the same.
       
-      d) Identify the entity originating the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to identify the Account ID of the account sending the trxn( i.e. Originator_Account_ID) , the Customer ID corresponding to the account (i.e. Originator_Customer_ID),the Individual Or Organization originating the transaction (i.e. Originator_Name).Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary are the same.
+      d) Identify the entity originating the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to identify the Account ID of the account sending the trxn( i.e. Originator_Account_ID) , the Customer ID corresponding to the account (i.e. Originator_Customer_ID),the Individual Or Organization originating the transaction (i.e. Originator_Name).Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary (both Name and ID) are the same.
 
 
       e) Identify the date of the transaction (i.e. Trxn_Date). If this is missing, you can make reasonable assumptions.
@@ -500,7 +500,7 @@ agents:
 
       c) Both transactions are deposited into Acct #345723. Acct #345723 belongs to John as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_001 from the dictionary FI_to_Acct_to_Cust.
 
-      d) Both transactions are originated by John. Given this is a cash transaction and no Account ID specified from which the cash originates , the originator and benficary information can be assumed to be the same.
+      d) Both transactions are originated by John. Given this is a cash transaction and no Account ID specified from which the cash originates , the originator and benficary information (both Name and ID) can be assumed to be the same.
 
       e) The Trxn Dates are 2024-01-04 and 2024-01-07 
 
