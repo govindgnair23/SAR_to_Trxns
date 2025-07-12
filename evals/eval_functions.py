@@ -308,8 +308,8 @@ def compare_trxns(df: pd.DataFrame, expected_trxns: Dict[str, Dict[str, Any]]) -
     for set_id, expected in expected_trxns.items():
         # Filter by Originator and Beneficiary
         sub_df = df[
-            (df["Originator_Account_ID"] == expected["Originator_Account_ID"]) &
-            (df["Beneficiary_Account_ID"] == expected["Beneficiary_Account_ID"])
+            df["Originator_Account_ID"].isin(expected["Originator_Account_ID"]) &
+            df["Beneficiary_Account_ID"].isin(expected["Beneficiary_Account_ID"])
         ]
 
         if sub_df.empty:

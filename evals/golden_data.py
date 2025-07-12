@@ -109,8 +109,10 @@ sars = [
              "1234567": {
                     "Trxn_Set_1":"The account #1234567 for Doe Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report. Deposits were made by John Doe on 06/03, 06/09, and 06/11 at the Happy Valley branch, while Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch",
 
-                    "Trxn_Set_2": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."}
-                        }
+                    "Trxn_Set_2": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."},
+            "Dummy_Acct_1":{
+                "Trxn_Set_1": "Checks for $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe's Auto Sales account #1234567 at Happy Valley branch and Main Office branch."
+            }  }
     ),
 
     ## Add third SAR
@@ -226,7 +228,7 @@ sars = [
 expected_trxns = {
 "sar_train1": 
     {"Trxn_Set_1":
-         {"Originator_Account_ID": "123456789",
+         {"Originator_Account_ID": ["123456789",""],
           "Beneficiary_Account_ID": "123456789",
           "Total_Amount": 50000,
           "Trxn_Type": ["Cash","Check","Money Order"],
@@ -251,7 +253,7 @@ expected_trxns = {
         },
 
      "Trxn_Set_3":
-        {"Originator_Account_ID": "234567891",
+        {"Originator_Account_ID": ["234567891",""],
           "Beneficiary_Account_ID": "234567891",
           "Total_Amount": 275000,
           "Trxn_Type": ["Cash","Check","Money Order"],
@@ -267,7 +269,7 @@ expected_trxns = {
 
 "sar_train2": {
     "Trxn_Set_1":
-         {"Originator_Account_ID": "1234567",
+         {"Originator_Account_ID": ["1234567",""],
           "Beneficiary_Account_ID": "1234567",
           "Total_Amount": 58800,
           "Trxn_Type": ["Cash"],
@@ -294,7 +296,7 @@ expected_trxns = {
 
 "sar_train3": {
      "Trxn_Set_1":
-         {"Originator_Account_ID": "12345678910",
+         {"Originator_Account_ID": ["12345678910",""],
           "Beneficiary_Account_ID": "12345678910",
           "Total_Amount": 29650,
           "Trxn_Type": ["Cash"],
@@ -321,7 +323,7 @@ expected_trxns = {
 
 "sar_train4": {
      "Trxn_Set_1":
-         {"Originator_Account_ID": "54321098",
+         {"Originator_Account_ID": ["54321098",""],
           "Beneficiary_Account_ID": "54321098",
           "Total_Amount": 2710000,
           "Trxn_Type": ["Cash"],
@@ -345,7 +347,7 @@ expected_trxns = {
           "N_trxns": 274}
     ,
     "Trxn_Set_3":
-         {"Originator_Account_ID": "12345678",
+         {"Originator_Account_ID": ["12345678",""],
           "Beneficiary_Account_ID": "12345678",
           "Total_Amount": 1900000,
           "Trxn_Type": ["Cash"],
