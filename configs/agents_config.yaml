@@ -25,11 +25,11 @@ agents:
       ## Instructions 
       Using the SAR narrative shared by the user, do the following:
 
-      Step 1) Extract the main entities described. Entities could be Individuals or Organizations or Financial Institutions.
+      Step 1) Extract the main entities described. Entities could be Individuals or Organizations or Financial Institutions or Locations.Locations refer to branch or ATM locations.
 
       Step 2) If the same entity is being referenced by different names, resolve them by using a single name.Choose the name which is more descriptive or specific.
 
-      Step 3) Extract the Account IDs described. Account IDs could be numeric or alphanumeric.If an Account ID is missing, synthesise `Dummy_Acct_<n>`.
+      Step 3) Extract the Account IDs described. Account IDs could be numeric (e.g. #123456) or alphanumeric (e.g. #1234-56).Only when an Account ID is referenced in the narrative but missing, synthesize `Dummy_Acct_<n>`.
               e.g. Dummy_Acct_1, Dummy_Acct_2 and so on. 
 
       Step 4) Map the extracted Account IDs to Financial institutions where the account is held. If the name of the institution is not specified, synthesise `Dummy_Bank_<n>` e.g Dummy_Bank_1, Dummy_Bank_2 etc.
@@ -47,17 +47,18 @@ agents:
       </SAR_NARRATIVE>
 
       Step 1) Extract the main entities described. Identify the Individuals , Organizations and Financial Instituions mentioned. 
-      Individuals and Organizations are entities that usually conduct transactions through Financial institutions. Here, John and Jill are Individuals. Acme Inc is an Organization.Financial institutions are institutions such as banks or insurance companies that offer financial services to customers. Hence Bank of America and Chase Bank are Financial institutions.
+      Individuals and Organizations are entities that usually conduct transactions through Financial institutions. Here, John and Jill are Individuals. Acme Inc is an Organization.Financial institutions are institutions such as banks or insurance companies that offer financial services to customers. Hence Bank of America and Chase Bank are Financial institutions.Note that Financial Institutions can have branches and they are not be considered as entites , therefore Manhattan branch should not considered an entity.
 
 
       Record this as a dictionary named Entities.
 
-      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":["Chase"," Bank of America", "Chase Bank"]}}.
+      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":["Chase"," Bank of America", "Chase Bank"], "Locations": "Manhattan"}.
       If missing, use a list with an empty string e.g. [""]
 
       Step 2) Chase and Chase Bank refer to the same entity. Refer to this entity as Chase Bank as this is a more descriptive name.
 
-      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":[" Bank of America", "Chase Bank"]}}
+      Entities = {"Individuals": ["John", "Jill"],"Organizations":["Acme Inc"],"Financial Institutions":[" Bank of America", "Chase Bank"],
+                  "Locations": "Manhattan"}
 
       Step 3) Extract the account IDs described. Accounts mentioned in the narrative are #345723,#98765. There is also an account at Chase Bank that is missing. Assign a dummy account ID ("Dummy_Acct_1")
       to this account.
@@ -95,7 +96,8 @@ agents:
           "Entities": {
             "Individuals": <List of Individuals>,
             "Organizations": <List of Organizations>,
-            "Financial_Institutions": <List of Financial Institutions>
+            "Financial_Institutions": <List of Financial Institutions>,
+            "Locations" : <List of Locations>
                       },
           "Account_IDs": <List of Account IDs>,
           "Acct_to_FI": {
