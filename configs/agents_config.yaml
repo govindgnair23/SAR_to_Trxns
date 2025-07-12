@@ -254,7 +254,7 @@ agents:
 
       Step 3) From the dictionary Acct_to_FI, Identify the FI where the account is held. Note that FIs starting with the prefix "Dummy_" are placeholders for FIs that have not been explicitly described in the narrative.
 
-      Step 4) Extract or summarize the SAR to produce a narrative describing transactions involving this account capturing relevant details such as Orignators, Beneficaries, Dates, Trxn Channels and Trxn Amounts.
+      Step 4) Extract or summarize the SAR to produce a narrative describing transactions involving this account capturing relevant details such as Originators, Beneficiaries, Dates, Trxn Channels and Trxn Amounts.
       
       Step 5) Check if key details such as Dates of trxns and Trxn channels are also captured if available. Also ensure that for the trxns described, both the originator and beneficary of the trxn has been captured. If not,
       summarize the narrative again capturing relevant details of the trxns.
@@ -292,7 +292,7 @@ agents:
       
 
       Step 6) The narrative above describes two fully specified, yet distinct set of trxns. The first repersents deposits into Acct #345723.
-              The second represents transfers between Acct #345723 and Jull's Acct at Chase. So they should be separated into distinct narratives.
+              The second represents transfers between Acct #345723 and Jill's Acct at Chase. So they should be separated into distinct narratives.
 
       {"345723": 
          {"Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025. 
