@@ -396,6 +396,28 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
                     )
                 )
 
+    def test_narrative_contains_date_and_amount(self):
+        """
+        Ensure each extracted narrative contains at least one date and one transaction amount.
+        """
+        # Regex to match month-name dates or numeric dates
+        date_pattern = r'(\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s*\d{1,2},\s*\d{4}\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b)'
+        # Regex to match dollar amounts like $1,000 or $5000.00
+        amount_pattern = r'\$\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?'
+
+        for acct_id, sub_dict in self.results_dict1.items():
+            for tx_key, narrative in sub_dict.items():
+                self.assertRegex(
+                    narrative,
+                    date_pattern,
+                    f"Narrative '{tx_key}' for account '{acct_id}' does not contain a date."
+                )
+                self.assertRegex(
+                    narrative,
+                    amount_pattern,
+                    f"Narrative '{tx_key}' for account '{acct_id}' does not contain an amount."
+                )
+
 
 
 
