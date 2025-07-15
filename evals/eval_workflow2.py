@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from collections import defaultdict
 from typing import List, Dict, Any
@@ -57,13 +58,26 @@ if __name__ == "__main__":
         elapsed_time = time.time() - start_time
         sar_timings.append({"sar_id": sar.sar_name, "time_taken_seconds": elapsed_time})
         sar_trxn_metrics.append(trxn_metrics)
+    output_folder = "./data/output/evals/workflow2"
 
     total_elapsed_time = time.time() - total_start_time
     sar_timings.append({"sar_id": "Total","time_taken_seconds": total_elapsed_time})
     sar_trxn_metrics_df = pd.concat(sar_trxn_metrics,ignore_index= True)
+    # Add execution timestamp
+    sar_trxn_metrics_df['timestamp'] = pd.Timestamp.now()
     sar_timings_df = pd.DataFrame(sar_timings)
 
-    output_folder = "./data/output/evals/workflow2"
+    # Accumulate to master DataFrame for trend analysis
+    master_file = os.path.join(output_folder, "master_trxn_metrics.csv")
+    if os.path.exists(master_file):
+        master_df = pd.read_csv(master_file, parse_dates=["timestamp"])
+        master_df = pd.concat([master_df, sar_trxn_metrics_df], ignore_index=True)
+    else:
+        master_df = sar_trxn_metrics_df.copy()
+    # Save/update the master CSV
+    write_data_to_file(master_df, master_file)
+
+    
      # Print the DataFrames in the console
     logger.info(f"\n=== Per-SAR Trxn Metrics available in {output_folder}===")
     #print(entity_metrics.to_string(index=False))
