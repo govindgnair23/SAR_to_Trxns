@@ -114,7 +114,7 @@ sars = [
                     "Trxn_Set_3": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."},
                     
             "Dummy_Acct_1":{
-                "Trxn_Set_1": "Checks for $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe's Auto Sales account #1234567 at Happy Valley branch and Main Office branch."
+                "Trxn_Set_1": "Checks for $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe Auto Sales account #1234567 at Happy Valley branch and Main Office branch."
             }  }
     ),
 
