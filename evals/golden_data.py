@@ -232,7 +232,7 @@ expected_trxns = {
 "sar_train1": 
     {"Trxn_Set_1":
          {"Originator_Account_ID": ["123456789",""],
-          "Beneficiary_Account_ID": "123456789",
+          "Beneficiary_Account_ID": ["123456789"],
           "Total_Amount": 50000,
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
@@ -243,8 +243,8 @@ expected_trxns = {
           "N_trxns": 13}
         ,
      "Trxn_Set_2":
-        {"Originator_Account_ID": "123456789",
-          "Beneficiary_Account_ID": "3489728",
+        {"Originator_Account_ID": ["123456789"],
+          "Beneficiary_Account_ID": ["3489728"],
           "Total_Amount": 225000,
           "Trxn_Type": ["Wire"],
           "Min_Date": "2003-01-17",
@@ -257,7 +257,7 @@ expected_trxns = {
 
      "Trxn_Set_3":
         {"Originator_Account_ID": ["234567891",""],
-          "Beneficiary_Account_ID": "234567891",
+          "Beneficiary_Account_ID": ["234567891"],
           "Total_Amount": 275000,
           "Trxn_Type": ["Cash","Check","Money Order"],
           "Min_Date": "2003-01-02",
@@ -273,7 +273,7 @@ expected_trxns = {
 "sar_train2": {
     "Trxn_Set_1":
          {"Originator_Account_ID": ["1234567",""],
-          "Beneficiary_Account_ID": "1234567",
+          "Beneficiary_Account_ID": ["1234567"],
           "Total_Amount": 58800,
           "Trxn_Type": ["Cash"],
           "Min_Date": "2003-06-03",
@@ -284,8 +284,8 @@ expected_trxns = {
           "N_trxns": 6},
 
     "Trxn_Set_2":
-         {"Originator_Account_ID": "1234567",
-          "Beneficiary_Account_ID": "Dummy_Acct_1",
+         {"Originator_Account_ID": ["1234567"],
+          "Beneficiary_Account_ID": ["Dummy_Acct_1"],
           "Total_Amount": 58800,
           "Trxn_Type": ["Check"],
           "Min_Date": "2003-06-04",
@@ -300,7 +300,7 @@ expected_trxns = {
 "sar_train3": {
      "Trxn_Set_1":
          {"Originator_Account_ID": ["12345678910",""],
-          "Beneficiary_Account_ID": "12345678910",
+          "Beneficiary_Account_ID": ["12345678910"],
           "Total_Amount": 29650,
           "Trxn_Type": ["Cash"],
           "Min_Date": "2002-03-15",
@@ -311,8 +311,8 @@ expected_trxns = {
           "N_trxns": 3},
 
     "Trxn_Set_2":
-         {"Originator_Account_ID": "12345678910",
-          "Beneficiary_Account_ID": "981012345",
+         {"Originator_Account_ID": ["12345678910"],
+          "Beneficiary_Account_ID": ["981012345"],
           "Total_Amount": 29500,
           "Trxn_Type": ["Wire"],
           "Min_Date": "2002-03-16",
@@ -327,7 +327,7 @@ expected_trxns = {
 "sar_train4": {
      "Trxn_Set_1":
          {"Originator_Account_ID": ["54321098",""],
-          "Beneficiary_Account_ID": "54321098",
+          "Beneficiary_Account_ID": ["54321098"],
           "Total_Amount": 2710000,
           "Trxn_Type": ["Cash"],
           "Min_Date": "1999-02-02",
@@ -338,8 +338,8 @@ expected_trxns = {
           "N_trxns": 284},
 
     "Trxn_Set_2":
-         {"Originator_Account_ID": "54321098",
-          "Beneficiary_Account_ID": "456781234",
+         {"Originator_Account_ID": ["54321098"],
+          "Beneficiary_Account_ID": ["456781234"],
           "Total_Amount": 2697000,
           "Trxn_Type": ["Wire"],
           "Min_Date": "1999-02-03",
@@ -351,7 +351,7 @@ expected_trxns = {
     ,
     "Trxn_Set_3":
          {"Originator_Account_ID": ["12345678",""],
-          "Beneficiary_Account_ID": "12345678",
+          "Beneficiary_Account_ID": ["12345678"],
           "Total_Amount": 1900000,
           "Trxn_Type": ["Cash"],
           "Min_Date": "1999-02-02",
@@ -362,8 +362,8 @@ expected_trxns = {
           "N_trxns": 200},
 
     "Trxn_Set_4":
-         {"Originator_Account_ID": "12345678",
-          "Beneficiary_Account_ID": "456781234",
+         {"Originator_Account_ID": ["12345678"],
+          "Beneficiary_Account_ID": ["456781234"],
           "Total_Amount": 1866000,
           "Trxn_Type": ["Wire"],
           "Min_Date": "1999-02-03",
