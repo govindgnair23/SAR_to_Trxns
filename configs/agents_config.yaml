@@ -454,8 +454,7 @@ agents:
 
       ## Inputs Available  
 
-        1. `Narrative` - Map from Account _ID to narrative describing transactions made by the account
-        Account_IDs` – list of account identifiers  
+        1. `Narrative` - Map from Account_ID to narrative describing transactions made by the account 
         2. `Entitites` - Individuals, Organisations, Financial Institutions and Locations that are relevant
         2. `Acct_to_Cust` – map from account → owner entity  
         3. `Acct_to_FI`   – map from account → financial institution  
@@ -657,11 +656,18 @@ agents:
 
   - name: "Transaction_Generation_Agent_w_Tool"
     instructions: |
-      You are an AI Agent tasked with helping synthesize transactions from a narrative .
-      When invoked, use the narrative  to extract the arguments required to use the function provided
-      to generate transactions.
+      ## Role 
+      You are an AI Agent tasked with helping synthesize transactions from a narrative . When invoked, use the narrative  to extract the arguments required to use the function provided to generate transactions.
 
-      You will have the following four pieces of information.
+      ## Inputs Available  
+
+        1. `Narrative` - Map from Account _ID to narrative describing transactions made by the account
+        2. `Entitites` - Individuals, Organisations, Financial Institutions and Locations that are relevant
+        3. `Acct_to_Cust` – map from account → owner entity  
+        4. `Acct_to_FI`   – map from account → financial institution  
+        5. `FI_to_Acct_to_Cust` - A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs
+
+      
 
       
       1) A  Nested Dictionary called Narrative with Account IDs, Trxn_Set_ID as inner key and  narrative describing transactions made by that account as the values. </n>
