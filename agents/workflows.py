@@ -151,11 +151,33 @@ def run_agentic_workflow2(input:Dict, config_file:str) -> List[Dict[str, Dict[in
         for future in as_completed(futures):
             trxn_df_list.append(future.result())
 
+    #Columns that indicate a trxn has been duplicated under the same sub-narrative attributed to different account IDs
+    DEDUP_COLS = [
+    "Originator_Account_ID",
+    "Originator_Name",
+    "Beneficiary_Account_ID",
+    "Beneficiary_Name",
+    "Originator_Customer_ID",
+    "Beneficiary_Customer_ID",
+    "Trxn_Date",
+    "Trxn_Amount",
+    "Trxn_Channel",
+]
+
     # Concatenate to get a single dataframe with trxns for all trxns sets
     if trxn_df_list:
         trxns_df_final = pd.concat(trxn_df_list)
-        #Drop duplicate rows as same narratived could be attributes to two account ids (Originator and Beneficary)
-        trxns_df_final = trxns_df_final.drop_duplicates()
+        if len(trxn_df_list)>1:
+            #Drop duplicate rows as same narrative could be attributes to two account ids (Originator and Beneficary)
+            #Do this only if there is more than one trxn set
+            before = len(trxns_df_final)
+            trxns_df_final = (
+                trxns_df_final
+                .sort_values(DEDUP_COLS)  # deterministic
+                .drop_duplicates(subset=DEDUP_COLS, keep="first")
+            )
+            removed = before - len(trxns_df_final)
+            logger.info("Deduplicated %d rows using subset=%s", removed, DEDUP_COLS)
         trxns_df_final["Transaction_ID"] = range(1, len(trxns_df_final) + 1)
         #Replace missing Originator and Beneficary accunt IDS with None
         trxns_df_final["Originator_Account_ID"] = trxns_df_final["Originator_Account_ID"].fillna("")
