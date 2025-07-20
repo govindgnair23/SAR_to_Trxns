@@ -54,7 +54,7 @@ def main(filename):
     sar_text = read_file(filename)
     logger.info("Read SAR file")
     _,df = generate_transactions_from_text(sar_text)
-    write_data_to_file(df)
+    #write_data_to_file(df,)
     return df
 
 
