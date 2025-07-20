@@ -467,6 +467,7 @@ agents:
       • Think step-by-step, but reveal **only** the final dictionary.
       • If the Financial institution for certain accounts are not specified in the narrative, a dummy financial institution starting with    "Dummy_Bank_" will be used for them.</n>
       • Note the key of the dictionary "Narratives". This should be the originator or beneficiary account of the trxns.
+      • Branch_or_ATM Locations should match with the Locations identified in `Entities`
 
     
       ## Instructions
@@ -488,7 +489,7 @@ agents:
 
           e) Identify the amount of the transaction (i.e. Trxn_Amount)
 
-          g) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). This have been identified as Locations in the input `Entities`.  If this is not specified, it can be considered missing.
+          g) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). This have been identified as Locations in the input `Entities` - only choose locations that have been identified here. If this is not specified, it can be considered missing.
 
         Step 3) Ensure the following are extracted.
 
