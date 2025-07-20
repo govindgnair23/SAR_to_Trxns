@@ -165,6 +165,7 @@ def generate_transactions(
         N_transactions = len(trxn_amounts)
 
     elif case_min_max:
+        logger.info(f"Generating {N_transactions} transactions based on Min and Max Ind Trxn Amount")
         # Sample uniform random amounts within bounds
         trxn_amounts = np.round(
             np.random.uniform(
