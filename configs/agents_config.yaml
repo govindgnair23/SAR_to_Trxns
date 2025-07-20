@@ -559,9 +559,11 @@ agents:
       {1 : {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001",
                     "Beneficiary_Name": "John","Beneficiary_Account_ID":"345723","Beneficiary_Customer_ID":"CUST_001" ,
                     "Trxn_Channel":"Cash", "Trxn_Date":"2024-01-04", "Trxn_Amount":5000, "Branch_or_ATM_Location": "Main Road,NY"},
-                2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "John","Beneficiary_Account_ID":"345723",
-                "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash", "Trxn_Date":"2024-01-07", "Trxn_Amount":7500, "Branch_or_ATM_Location": "Main Road,NY"}
-               }
+      2: { "Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001",
+           "Beneficiary_Name":"John","Beneficiary_Account_ID":"345723",
+           "Beneficiary_Customer_ID":"CUST_001" ,"Trxn_Channel":"Cash",
+           "Trxn_Date":"2024-01-07", "Trxn_Amount":7500, "Branch_or_ATM_Location": "Main Road,NY"}
+          }
       ----
       ## Worked Example 2:
 
@@ -613,17 +615,21 @@ agents:
                      "Beneficiary_Name":"Acme Inc","Beneficiary_Account_ID":"98765",
                   "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-01", "Trxn_Amount":3000, "Branch_or_ATM_Location": ""
                 },
-                  2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
+        2: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
                   "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Wire", "Trxn_Date":"2024-01-08", "Trxn_Amount":7000, "Branch_or_ATM_Location": ""
                 },
-                3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
+        3: {"Originator_Name": "John", "Originator_Account_ID": "345723", "Originator_Customer_ID":"CUST_001","Beneficiary_Name": "Acme Inc","Beneficiary_Account_ID":"98765",
                   "Beneficiary_Customer_ID":"CUST_002" ,"Trxn_Channel":"Check", "Trxn_Date":"2024-01-05", "Trxn_Amount":4000, "Branch_or_ATM_Location": ""
                 }
                } 
                 
       ---
-
-      Return only the JSON containing the trxns. Do not include any additional comments or objects.
+      ## OUTPUT CONTRACT (MANDATORY)
+      Return a single JSON object whose only keys are consecutive string integers "1", "2", … each mapping to one transaction object with exactly the fields:
+      Originator_Name, Originator_Account_ID, Originator_Customer_ID, Beneficiary_Name, Beneficiary_Account_ID, Beneficiary_Customer_ID, Trxn_Channel, Trxn_Date, Trxn_Amount, Branch_or_ATM_Location.
+      Do not nest under an account id. Do not add wrapper keys (like "transactions", "data", etc.).
+      All dates must be YYYY-MM-DD. Return only valid JSON (no trailing commas, no comments, no prose).
+    
 
       
     llm_config:
