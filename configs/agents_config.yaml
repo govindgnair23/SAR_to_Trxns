@@ -634,7 +634,7 @@ agents:
       
     llm_config:
       model: "o4-mini"
-      temperature: 0
+      temperature: 1
       response_format:
         type: json_object
     human_input_mode: "NEVER"
