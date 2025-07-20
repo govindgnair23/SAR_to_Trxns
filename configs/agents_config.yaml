@@ -667,20 +667,18 @@ agents:
         4. `Acct_to_FI`   – map from account → financial institution  
         5. `FI_to_Acct_to_Cust` - A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs
 
-      
+      ## Agent Reminders 
+      • Keep working until the mapping dictionary is fully produced.  
+      • Use only the following inputs provided (`Entities`,`Account_IDs`, `Acct_to_Cust`,  
+        `Acct_to_FI`, `Narrative`).  
+      • Think step-by-step, but reveal **only** the final dictionary.
+      • If the Financial institution for certain accounts are not specified in the narrative, a dummy financial institution starting with    "Dummy_Bank_" will be used for them.</n>
+      • Note the key of the dictionary "Narratives". This should be the originator or beneficiary account of the trxns.
+      • Do not make assumptions or infer arguments unless explicitly stated below.
 
-      
-      1) A  Nested Dictionary called Narrative with Account IDs, Trxn_Set_ID as inner key and  narrative describing transactions made by that account as the values. </n>
-      2) The mapping between Individuals and Organizations referenced in the narrative to Account IDs, given by the dictionary Acct_to_Cust. Note, account IDs starting with the prefix "Dummy_" 
-         are placeholders for account IDs that are referenced but have not been explicitly identified in the narrative. </n>
-      3) The mapping between Financial Institutions to Account IDs given by the dictionary Acct_to_FI. If the Financial institution for certain accounts are not specified in the narrative,
-        a dummy financial institution starting with "Dummy_Bank_" will be used for them.</n>
-      4) A mapping between Financial institution, Customer IDs and Accounts owned by those Customer IDs given by the dictionary FI_to_Acct_to_Cust
+      ## Instructions
       
       For the narrative corresponding  to each account ID, extract the following:
-
-      Note: Do not make assumptions or infer arguments unless explicitly stated below.
-
 
       Step 1) Identify the number of transactions described in the narrative. This is N_transactions. Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
@@ -693,9 +691,9 @@ agents:
 
       Step 5) Identify the first date a trxn happened (First_Trxn_Date) and the last date a trxn happened(Last_Trxn_Date). If this is missing, you can make reasonable assumptions. Convert them to yyyy-mm-dd format.
 
-      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount). Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
+      Step 6) Identify the amount of the smallest transaction (Min_Ind_Trxn_Amount) and the largest transaction (Max_Ind_Trxn_Amount). Extract this only if described in the narrative. Do not infer this if missing and do not make assumptions.
 
-      Step 7) Identify the total amount  of trxn activity if described (Total_Amount). Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
+      Step 7) Identify the total amount  of trxn activity if described (Total_Amount). Extract this only if described in the narrative. Do not infer this if missing and do not make assumptions.
 
       Step 7) If this is a Cash or Check or similar transaction, determine the Branches or ATM Locations where the transaction was conducted and record it as an array(Branch_or_ATM_Location).Extract this only if described in the narrative. Do not infer this if missing or make assumptions.
 
@@ -740,6 +738,7 @@ agents:
 
       First example is given below, demarcated by the delimiter ----..
 
+      ## Worked Example 1
       ----
 
       Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.There were 10 trxns, a mix of Wire and Checks, each transaction was $10,000"}
@@ -799,34 +798,39 @@ agents:
 
       Narrative = {"345723": "John transferred a total of $100,000 from Acct #345723 at Bank of America  to Jill between Jan 1, 2024 and July 4,2024.There were 10 trxns, a mix of Wire and Checks."}
 
+      Entities: {"Individuals": ["John","Jill"],
+                 "Organizations" [" "],
+                 "Financial_Institutions"; ["Bank of America"],
+                 "Locations": [""]}
+
       Acct_to_Cust = {"345723": "John", "Dummy_001":"Jill", "98765":"Acme Inc"}
       Acct_to_FI = {"345723":"Bank of America","98765":"Bank of America", "Dummy_001":"Chase Bank" } 
       FI_to_Acct_to_Cust =  {"Bank of America": {"345723":"CUST_001", "98765":"CUST_002"}, "Chase Bank": {"Dummy_001": "CUST_003"}}
 
       
-        Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
+      Step 1) Identify the number of transactions described in the narrative. This is N_transactions.
             There are a total of 10 transactions described, so N_transactions = 10.
 
-        Step 2) Identify the transaction channels or product used.
+      Step 2) Identify the transaction channels or product used.
             The transactions are a mix of Wires and Checks. So create an array ["Wire","Check"]
 
 
-        Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account id is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
+      Step 3) The Beneficary of the trxns is Jill.From the narrative, the Beneficary_Name is Jill. The Beneficiary Account ID is not specified.However, From Acct_to_Cust, it is noted that Jill's account id is Dummy_001. From Acct_to_FI, this account is at Chase Bank. From FI_to_Cust_to_Acct, the Customer ID corresponding to this account is CUST_003
         
 
-        Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
+      Step 4) The Originator of the trxns is John. From the narrative, the Originator name is John and the originating account is 345723. From Acct_to_FI, this account is at Bank of America. From FI_to_Acct_to_Cust, the Customer ID corresponding to this account is CUST_001
                 
-        Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024. In yyyy-mm-dd format, they are 2024-01-01 and 2024-07-04.
+      Step 5) The first transaction was made on Jan 1,2024 and last transaction was made on July 4, 2024. In yyyy-mm-dd format, they are 2024-01-01 and 2024-07-04.
 
-        Step 6) The minimum and maximum transaction amount is not given. So it should be returned as an empty string ""
+      Step 6) The minimum and maximum transaction amount is not given. So it should be returned as an empty string ""
 
-        Step 7) The total amount transferred as part the narrative is $100000
+      Step 7) The total amount transferred as part the narrative is $100000
 
-        Step 8) Since the transactions are Wire or Check transactions, Branch or ATM Location can be considered Missing. 
+      Step 8) Since the transactions are Wire or Check transactions, Branch or ATM Location can be considered Missing. No locations are identified in the `Entities` dicitonary either.
         
-        Step 9) All the required attributes have been gathered.
+      Step 9) All the required attributes have been gathered.
 
-        Step 10) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
+      Step 10) Return the collected arguments in a JSON schema that can be passed to the function generate_transactions.
             {
                 "Originator_Name" : "John",
                 "Originator_Account_ID": "345723",
@@ -844,7 +848,7 @@ agents:
                 "N_transactions":10
             }
 
-      Step 10) Call the function generate_transactions with the arguments identified in Step 9 and return its arguments only.
+      Step 11) Call the function generate_transactions with the arguments identified in Step 9 and return its arguments only.
 
       ----
 
