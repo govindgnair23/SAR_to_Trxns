@@ -90,7 +90,8 @@ sars = [
         gold_entities={
               "Individuals": ["John Doe","Jane Doe"],
               "Organizations": ["Doe Auto Sales"],
-              "Financial_Institutions": ["XYZ Bank"]
+              "Financial_Institutions": ["XYZ Bank"],
+              "Locations" : ["Happy Valley", "Main Office"]
         },
         gold_account_ids=["1234567"],
         gold_acct_to_fi={
@@ -111,7 +112,7 @@ sars = [
 
                     "Trxn_Set_2":"The account #1234567 for Doe Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report., Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch  ",
 
-                    "Trxn_Set_3": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."},
+                    "Trxn_Set_3": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited to the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."},
                     
             "Dummy_Acct_1":{
                 "Trxn_Set_1": "Checks for $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe Auto Sales account #1234567 at Happy Valley branch and Main Office branch."
@@ -278,7 +279,7 @@ expected_trxns = {
           "Trxn_Type": ["Cash"],
           "Min_Date": "2003-06-03",
           "Max_Date": "2003-03-12",
-          "Branch_or_ATM_Location": ["Happy Valley branch","Main office branch"],
+          "Branch_or_ATM_Location": ["Happy Valley","Main office"],
           "Min_Ind_Amt": 9800,
           "Max_Ind_Amt":9800,
           "N_trxns": 6},
