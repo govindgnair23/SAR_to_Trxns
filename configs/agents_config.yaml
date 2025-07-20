@@ -633,7 +633,7 @@ agents:
 
       
     llm_config:
-      model: "gpt-4.1-mini"
+      model: "o4-mini"
       temperature: 0
       response_format:
         type: json_object
