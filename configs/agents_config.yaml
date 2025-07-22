@@ -265,7 +265,7 @@ agents:
       
       Step 5) Validate: if a transaction is missing date, amount or channel but the narrative provides an implied default, fill it; otherwise leave that field null. 
 
-      Step 6)  Group or partition the summaries generated into sets. A set of trxns should fully describe the originator and beneficary of the trxns. If the narrative describes multiple sets of trxns, create multiple narratives describing each set of trxns.
+      Step 6)  Group or partition the summaries generated into sets. A set of trxns should fully describe the originator and beneficary of the trxns. If the narrative describes multiple sets of trxns, create one narrative describing each set of trxns.
 
       Step 7) Repeat for all Account IDs
 
@@ -277,8 +277,7 @@ agents:
       ----
 
       1) SAR Narrative:
-          John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025. Unless otherwise stated,
-          John always used wires for trxns and the trxns were sent on Jan 31,2025.
+          John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025. Unless otherwise stated,John always used wires for trxns and the trxns were sent on Jan 31,2025.
       
       2) Acct_to_Cust =  {"345723": "John, "99999":"John", "12345":"Jill", "Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
 
@@ -468,6 +467,7 @@ agents:
       • If the Financial institution for certain accounts are not specified in the narrative, a dummy financial institution starting with    "Dummy_Bank_" will be used for them.</n>
       • Note the key of the dictionary "Narratives". This should be the originator or beneficiary account of the trxns.
       • Branch_or_ATM Locations should match with the Locations identified in `Entities`
+      • Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary (both Name and ID) are the same.
 
     
       ## Instructions
@@ -480,16 +480,22 @@ agents:
 
           a) Identify the transaction channel or product used (i.e. Trxn_Channel). This could be Wire, Cash, Checks or something similar. If this is missing, you can make a reasonable assumption.
 
-          b) Identify the entity receiving the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to Identify the Account ID of the account receiving the trxn (i.e. Beneficiary_Account_ID), the Customer ID corresponding to the account (i.e. Beneficiary_Customer_ID),the Beneficiary_Name which is the Individual Or Organization who is the Beneficiary of the transaction. Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary (both Name and ID) are the same.
+          b) Identify the beneficary of the trxn. The beneficiary receives funds.
+           - Identify the beneficiary account ID if mentioned. 
+           - Use the dictionary Acct_to_Cust to identify the Individual or Organization who owns the account (i.e. Beneficiary_Name)
+           - Use the dictionary Acct_to_FI and FI_to_Acct_to_Cust to identify the Customer ID corresponding to the beneficary i.e. Beneficary_Customer_ID). 
       
-          c) Identify the entity originating the trxn. Use the dictionaries Acct_to_Cust, Acct_to_FI and FI_to_Acct_to_Cust to identify the Account ID of the account sending the trxn( i.e. Originator_Account_ID) , the Customer ID corresponding to the account (i.e. Originator_Customer_ID),the Individual Or Organization originating the transaction (i.e. Originator_Name).Note that for cash transactions, if only information on the originator or benficary are available, you can assume the originator and beneficiary (both Name and ID) are the same.
+          c) Identify the originator of the trxns. The originator sends funds. 
+           - Identify the Originator Account ID if mentioned.
+           - Use the dictionaries Acct_to_Cust to identify the Individual or Organization who owns the account (i.e. Originator_Name)
+           -Use the dictionary Acct_to_FI and FI_to_Acct_to_Cust to identify the Customer ID of the entity sending the trxn( i.e. Originator_Customer_ID).
 
 
           d) Identify the date of the transaction (i.e. Trxn_Date). If this is missing, you can make reasonable assumptions.
 
           e) Identify the amount of the transaction (i.e. Trxn_Amount)
 
-          g) If this is a Cash or Check or similar transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). This have been identified as Locations in the input `Entities` - only choose locations that have been identified here. If this is not specified, it can be considered missing.
+          g) If this is a Cash transaction, determine the Branch or ATM Location where the transaction was conducted (i.e. Branch_or_ATM_Location). This have been identified as Locations in the input `Entities` - only choose locations that have been identified here. If this is not specified, it can be considered missing.
 
         Step 3) Ensure the following are extracted.
 
@@ -537,7 +543,7 @@ agents:
 
       b) The key of the Narratives dictionary is 345723. So Acct #345723 should be the originator or beneficary of the trxn.
 
-      c) Both transactions are deposited into Acct #345723. Acct #345723 belongs to John as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_001 from the dictionary FI_to_Acct_to_Cust.
+      c) Both transactions are deposited into Acct #345723 so it is the beneficary . Acct #345723 belongs to John as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_001 from the dictionary FI_to_Acct_to_Cust.
 
       d) Both transactions are originated by John. Given this is a cash transaction and no Account ID specified from which the cash originates , the originator and benficary information (both Name and ID) can be assumed to be the same.
 
@@ -592,9 +598,9 @@ agents:
 
       b) The key of the Narratives dictionary is 98765. So, Acct #98765 should be the originator or beneficiary of the trxn.
 
-      c) All transactions are deposited into Acme Inc's Account.  Acct #98765 belongs to Acme Inc as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_002 from the dictionary FI_to_Acct_to_Cust.
+      c) All transactions are deposited into Acme Inc's Account so this is the Beneficary.  Acct #98765 belongs to Acme Inc as per the dictionary Acct_to_Cust. The Acct is at Bank of America as per the dictionary Acct_to_FI. The Customer ID  at Bank of America corresponding to this Account is CUST_002 from the dictionary FI_to_Acct_to_Cust.
 
-      d) All transactions are originated by John. From the information provided John has only one Acct #345723 from the dictionary Acct_to_Cust. It is at Bank of America from the dictionary Acct_to_FI. The customer ID corresponding to this Acct is CUST_001 from FI_to_Acct_to_Cust.
+      d) All transactions are originated by John who is the Originator. From the information provided John has only one Acct #345723 from the dictionary Acct_to_Cust. It is at Bank of America from the dictionary Acct_to_FI. The customer ID corresponding to this Acct is CUST_001 from FI_to_Acct_to_Cust.
 
       e) The Trxn Dates for the wires are 2024-01-01 and 2024-01-08 and the Trxn date for the check is 2024-01-05.
 
@@ -633,8 +639,8 @@ agents:
 
       
     llm_config:
-      model: "o4-mini"
-      temperature: 1
+      model: "gpt-4.1"
+      temperature: 0
       response_format:
         type: json_object
     human_input_mode: "NEVER"
