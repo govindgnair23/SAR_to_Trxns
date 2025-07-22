@@ -108,15 +108,12 @@ sars = [
 
         gold_narrative =  {
              "1234567": {
-                    "Trxn_Set_1":"The account #1234567 for Doe Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report. Deposits were made by John Doe on 06/03, 06/09, and 06/11 at the Happy Valley branch.",
+                    "Trxn_Set_1":"Doe's Auto Sales received structured cash deposits of $9800 each on 06/03, 06/04, 06/09, 06/10, 06/11, and 06/12, 2003 at Dummy_Bank_1. Deposits on 06/03, 06/09, and 06/11 were made by John Doe at the Happy Valley branch, and deposits on 06/04, 06/10, and 06/12 were made by Jane Doe at the Main Office branch.",
 
-                    "Trxn_Set_2":"The account #1234567 for Doe Auto Sales shows unusual activity characterized by structured cash deposits. On six occasions in June 2003, cash deposits of $9,800 were made, possibly to avoid the filing of a currency transaction report., Jane Doe made deposits on 06/04, 06/10, and 06/12 at the Main Office branch  ",
-
-                    "Trxn_Set_3": "Following these deposits, checks for $9,800, payable to Doe Auto Sales were issued and subsequently deposited to the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13. The source of the funds is unknown, and this pattern appears to evade the reporting requirements of the Bank Secrecy Act."},
-                    
+                    "Trxn_Set_2": "Immediately following each cash deposit, checks payable to Doe's Auto Sales for $9800 each posted to account #1234567 on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003. These checks were deposited into an account at XYZ Bank (Dummy_Acct_1).",                    
             "Dummy_Acct_1":{
-                "Trxn_Set_1": "Checks for $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe Auto Sales account #1234567 at Happy Valley branch and Main Office branch."
-            }  }
+                "Trxn_Set_1": "Checks totaling $9800 each were deposited into the account at XYZ Bank on 06/04, 06/05, 06/10, 06/11, 06/12, and 06/13, 2003, originating from Doe's Auto Sales account #1234567 at Dummy_Bank_1. The disposition of funds after deposit to XYZ Bank is unknown."
+            }  }}
     ),
 
     ## Add third SAR
