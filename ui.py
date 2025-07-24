@@ -63,6 +63,25 @@ def generate_network_graph(entities, df):
 
 
 
+def render_legend(channel_colors, node_type_colors):
+    """Render legends for channels, node types, and edge styles in Streamlit."""
+    st.markdown("### 🔎 Legend")
+    # Channels legend (dashed edges)
+    with st.expander("Channels (dashed edges)", expanded=True):
+        for ch, color in channel_colors.items():
+            line_html = f"<span style='border-bottom:3px dotted {color}; display:inline-block; width:50px; margin-right:8px;'></span> {ch}"
+            st.markdown(line_html, unsafe_allow_html=True)
+    # Node types legend
+    with st.expander("Node Types", expanded=True):
+        for nt, color in node_type_colors.items():
+            label = nt.replace('_', ' ').title()
+            st.markdown(f"<span style='color:{color}'>■</span> {label}", unsafe_allow_html=True)
+    # Edge styles legend
+    with st.expander("Edge Styles", expanded=False):
+        st.markdown("<span style='border-bottom:2px dashed black; display:inline-block; width:30px;'></span> Transaction Edge", unsafe_allow_html=True)
+        st.markdown("<span style='border-bottom:2px solid black; display:inline-block; width:30px;'></span> Other Edge", unsafe_allow_html=True)
+
+
 def visualize_interactive_graph(G):
     # Create a PyVis network
     # Define colors for each node type
@@ -110,42 +129,14 @@ def visualize_interactive_graph(G):
     html = net.generate_html(notebook=False)
     components.html(html, height=650)
 
-    # Display legend for channels with dotted lines
-    st.markdown("**Channel Legend**")
-    for ch, color in channel_colors.items():
-        # Render a colored dotted line sample
-        line_html = f"<span style='border-bottom:3px dotted {color}; display:inline-block; width:50px; margin-right:8px;'></span> {ch}"
-        st.markdown(line_html, unsafe_allow_html=True)
-
-    # Display legend for node types
-    st.markdown("**Node Types**")
-    for nt, color in node_type_colors.items():
-        label = nt.replace('_', ' ').title()
-        st.markdown(
-            f"<span style='color:{color}'>■</span> {label}",
-            unsafe_allow_html=True
-        )
-
-    # Display legend for edge styles
-    st.markdown("**Edge Styles**")
-    # Dotted line sample for transactions
-    st.markdown(
-        "<span style='border-bottom:2px dashed black; display:inline-block; width:30px;'></span> Transaction Edge",
-        unsafe_allow_html=True
-    )
-    # Solid line sample for non-transaction edges
-    st.markdown(
-        "<span style='border-bottom:2px solid black; display:inline-block; width:30px;'></span> Other Edge",
-        unsafe_allow_html=True
-    )
+    render_legend(channel_colors, node_type_colors)
 
 
 
 
+st.set_page_config(page_title="SAR to Transactions", layout="wide")
 
-st.set_page_config(page_title="SAR to Transactions Demo", layout="wide")
-
-st.title("🔍 SAR to Synthetic Transactions Demo")
+st.title("🔍 SAR to Transactions")
 
 uploaded_file = st.file_uploader("Upload a SAR file (.txt)", type="txt")
 
