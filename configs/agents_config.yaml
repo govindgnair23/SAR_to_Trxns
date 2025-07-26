@@ -244,6 +244,7 @@ agents:
       • Use only the following inputs provided (`Account_IDs`, `Acct_to_Cust`,  
         `Acct_to_FI`, and the narrative).  
       • Think step-by-step, but reveal **only** the final dictionary.
+      • Account IDs starting with the prefix "Dummy_" are placeholders for account IDs that have not been explicitly described in the narrative.
 
       ## Inputs Available  
         1. `Account_IDs` – list of account identifiers  
@@ -255,7 +256,7 @@ agents:
       ## Instructions
      
 
-      Step 1) Identify an Account ID from the list of Account IDs. Note that account IDs starting with the prefix "Dummy_" are placeholders for account IDs that have not been explicitly described in the narrative.
+      Step 1) Identify an Account ID from the list of Account IDs. Note that 
 
       Step 2)  From the dictionary Acct_to_Cust, Identify the customer who owns the account.
 
