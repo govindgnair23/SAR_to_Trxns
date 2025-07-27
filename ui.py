@@ -59,6 +59,10 @@ def generate_network_graph(entities, df):
     # Record distinct transaction channels for downstream use
     channels = sorted(df["Trxn_Channel"].dropna().unique().tolist())
     G.graph["channels"] = channels
+    # Remove isolated nodes not connected by any edges
+    isolated_nodes = list(nx.isolates(G))
+    if isolated_nodes:
+        G.remove_nodes_from(isolated_nodes)
     return G
 
 
