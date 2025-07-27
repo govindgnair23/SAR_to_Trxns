@@ -29,8 +29,7 @@ agents:
 
       Step 2) If the same entity is being referenced by different names, resolve them by using a single name.Choose the name which is more descriptive or specific.
 
-      Step 3) Extract the Account IDs described. Account IDs could be numeric (e.g. #123456) or alphanumeric (e.g. #1234-56).Only when an Account ID is referenced in the narrative but missing, synthesize `Dummy_Acct_<n>`.
-              e.g. Dummy_Acct_1, Dummy_Acct_2 and so on. 
+      Step 3) Extract the Account IDs described. Account IDs could be numeric (e.g. #123456) or alphanumeric (e.g. #1234-56).Only when an Account ID is referenced in the narrative but missing, synthesize `Dummy_Acct_<n>`.e.g. Dummy_Acct_1, Dummy_Acct_2 and so on. 
 
       Step 4) Map the extracted Account IDs to Financial institutions where the account is held. If the name of the institution is not specified, synthesise `Dummy_Bank_<n>` e.g Dummy_Bank_1, Dummy_Bank_2 etc.
           
@@ -85,7 +84,7 @@ agents:
 
       Acct_to_Cust = {"345723": "John,"Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
     llm_config:
-      model: "gpt-4.1-mini"
+      model: "gpt-4.1"
       temperature: 0
     human_input_mode: "NEVER"
     max_turns: 1
@@ -256,17 +255,23 @@ agents:
       ## Instructions
      
 
-      Step 1) Identify an Account ID from the list of Account IDs. Note that 
+      Step 1) Identify an Account ID from the list of Account IDs. Only consider accounts in the list `Account_IDs`.
 
       Step 2)  From the dictionary Acct_to_Cust, Identify the customer who owns the account.
 
       Step 3) From the dictionary Acct_to_FI, Identify the FI where the account is held. Note that FIs starting with the prefix "Dummy_" are placeholders for FIs that have not been explicitly described in the narrative.
 
-      Step 4) Extract or summarize the SAR to produce a narrative describing transactions involving this account capturing relevant details such as Originators, Beneficiaries, Dates, Trxn Channels and Trxn Amounts. Review the entire SAR narrative to retrieve this information as relevant details might be provided in a different part of the narrative.
+      Step 4) Extract or summarize the SAR to produce a narrative describing transactions involving this account capturing the following relevant details
+        - Originator (Account ID and Name)
+        - Beneficiary (Account ID and Name)
+        - Trxn Dates
+        - Trxn Channels 
+        - Trxn Amounts. 
+      Review the entire SAR narrative to retrieve this information as relevant details might be provided in a different part of the narrative.
       
       Step 5) Validate: if a transaction is missing date, amount or channel but the narrative provides an implied default, fill it; otherwise leave that field null. 
 
-      Step 6)  Group or partition the summaries generated into sets. A set of trxns should fully describe the originator and beneficary of the trxns. If the narrative describes multiple sets of trxns, create one narrative describing each set of trxns.
+      Step 6)  Group or partition the summaries generated into sets. A set of trxns should fully describe the trxns between one originator and one benficiary. If the narrative describes trxns between multiple pairs of entities, create one narrative describing activity between each pair.
 
       Step 7) Repeat for all Account IDs
 
@@ -278,13 +283,13 @@ agents:
       ----
 
       1) SAR Narrative:
-          John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025. Unless otherwise stated,John always used wires for trxns and the trxns were sent on Jan 31,2025.
+          John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank. Jill wired $2000 from her account at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765. Checks posting to the account payable to Jill and deposited at Chase Bank were as follows Jan 16,2025: $1000, these checks posted to Acct #12345. Unless otherwise stated,John always used wires for trxns and the trxns were sent on Jan 31,2025.
       
       2) Acct_to_Cust =  {"345723": "John, "99999":"John", "12345":"Jill", "Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
 
       3) Acct_to_FI = {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America","Dummy_Acct_1":"Chase Bank", "98765":"Dummy_Bank_1" }
 
-      4) Account_IDs = ["345723","98765","12345","99999","Dummy_Acct_1"]
+      4) Account_IDs = ["345723","98765","12345","99999"]
 
       
       Step 1) The first account ID  is 345723
@@ -295,19 +300,18 @@ agents:
 
       Step 4) Extract or Summarize  the SAR to produce a narrative that references  Account 345723 capturing  both originators and benficaries, trxn amounts, trxn dates and trxn channels.
 
-      {"345723": "John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025. John sends $4000 from Acct #345723 to Jill's account at  Chase " }
+      {"345723": "John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025. John sends $4000 from Acct #345723 to Jill's account at Chase  " }
 
-      Step 5) The narrative captures relevant details including Originator, Beneficary, Trxn Amount, Trxn Date and Channels for the first cash deposit but not for the second transaction from John to Jill. The narrative states that unless otherwise stated John transacts in Wires on Jan 31,2025. So this can be used to update the narrative.
+      Step 5) The narrative captures relevant details including Originator, Beneficary, Trxn Amount, Trxn Date and Channels for the first cash deposit but not for the second transaction from John to Jill. The narrative states that unless otherwise stated John transacts in Wires on Jan 31,2025. So this can be used to update the narrative.Also, from the dictionaries Acct_to_Cust and Acct_to_FI, Jill's account at Chase is Dummy_Acct_1, this can be included in the narrative.
 
-      {"345723": "John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025. John sends $4000 in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025 " }
+      {"345723": "John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 15,2025. John sends $4000 in wires from Acct #345723 to Jill's account (Dummy_Acct_1) at  Chase  on Jan 31,2025 " }
       
 
-      Step 6) The narrative above describes two fully specified, yet distinct set of trxns. The first repersents deposits into Acct #345723.
-              The second represents transfers between Acct #345723 and Jill's Acct at Chase. So they should be separated into distinct narratives.
+      Step 6) The narrative above describes two fully specified, yet distinct set of trxns. The first repersents deposits into Acct #345723.The second represents transfers between Acct #345723 and Jill's Acct at Chase. So they should be separated into distinct narratives.
 
       {"345723": 
          {"Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025. 
-          "Trxn_Set_2": John sends $4000  in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025" } }
+          "Trxn_Set_2": John sends $4000  in wires from Acct #345723 to Jill's account (Dummy_Acct_1) at  Chase on Jan 31,2025" } }
 
       
       Step 7) Now repeat the process for the second account ID
@@ -347,13 +351,16 @@ agents:
 
       Step 4) Extract the part of the narrative that references the Account 12345 capturing both deposits and withdrawals.
 
-      {"12345": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" }
+      {"12345": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025. Checks posting to the account payable to Jill and deposited at Chase Bank were as follows Jan 16,2025: $1000, these checks posted to Acct #12345" }
 
-      Step 5)  The narrative captures relevant details including Originator, Beneficary, Trxn Amount , Trxn Date and Channel. No changes are needed
+      Step 5)  
+       - The narrative captures relevant details including Originator, Beneficary, Trxn Amount , Trxn Date and Channel for the wire trxn. However the Originator Account ID is missing. From the dictionaries Acct_to_Cust and Acct_to_CI, Jill's account at Chase Bank is Dummy_Acct_1, this detail can be included in the narrative.
+       - For the check trxn, it posted to Jill's Account at Chase Bank and Acct #12345. The narrative indicates that the check was deposited at Chase Bank so Acct #12345 is the originator while the Jill's acct at Chase (Dummy_Acct_1) is the beneficary.
 
-      Step 6) The narrative above describes only one set of trxns. So they can be included under one Trxn Set.
+      Step 6) The narrative above describes  two sets of trxns. So include them under two Trxn Sets.
       {"12345": 
-          {"Trxn_set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" } }
+          {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank (Dummy_Acct_1) to her Acct #12345 at Bank of America on Jan 19,2025" },
+          {"Trxn_Set_2": " Check of $1000 was deposited into Dummy_Acct_1 at Chase Bank. The check originated from Acct #123453" } }
 
       Step 7) Now repeat the process for the fourth account ID
 
@@ -380,62 +387,27 @@ agents:
           {"Trxn_Set_1": "John deposited $5000 in Cash into  Acct #99999 at Bank of America on Jan 1, 2025",
            "Trxn_Set_2": "John sends $2000 from Acct #99999 to Account #98765 by Wire on Jan 31,2025"}
 
-      Step 7) Now repeat the process for the fifth Account ID.
-
-      ---
-      ## Worked Example - 5
-      ---
-
-      Step 1) The fifth account ID  is Dummy_Acct_1. Given the accunt ID starts with Dummy_ , there won't be direct references to this account ID in the narrative. 
-
-      Step 2) This Account ID is owned by Jill. Given the Account ID is dummy, pay attention to transactions made by Jill,the owner of the dummy account.
-
-      Step 3) The Account ID is held at Chase Bank. Pay attention to transactions involving Chase Bank
-
-      Step 4) Extract or Summarize  the SAR to produce a narrative that references transactions made by Jill from the Dummy_Acct_1. Include both deposits and withdrawals where possible.
-
-      {"Dummy_Acct_1": "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025. Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." }
-
-      Step 5) For the first trxn described, the narrative captures the Originator, Beneficary, Amount and Date but not the channel. The narrative states that unless otherwise stated John transacts in Wires . So this can be used to update the narrative. For the other trxns described, all details are captured correctly.
-
-      Step 6) The narrative above describes four set of Trxns that are fully specified. So they should be included under four trxn sets.
-
-      The first set is the $4000  wire transfer from  Acct #345723 to Jill's Account at Chase Bank on Jan 15,2025.
-      The second set is the $3000 cash deposit Jill made into her acct at Chase Bank on Jan 17,2025.
-      The third set is the $2000 wire transfer from  Jill's Acct at Chase Bank to Acct #1235 at bank of America on Jan 19,2025
-      The fourth set is the $1000 wire from Jill's Acct at Chase Bank to Acct #98765 on Feb 7,2025 
-
-      {"Dummy_Acct_1": 
-          {"Trxn_Set_1": "John sends $4000  by Wire from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025",
-           "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  on Jan 17,2025" ,
-           "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025" ,
-           "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." }
-      ----
+     
+     
       ## Worked Example for Step 8) 
       ---
       Consolidate narratives for all accounts. Return this information  as Python Dictionary. Return only the final Python dictionary. Do not include any extra commentary, code fences, or text outside the dictionary.
 
       Narratives = {"345723": 
                      { "Trxn_Set_1":"John deposited $5000 each in Cash into Acct #345723 at Bank of America on Jan 1,2025.", 
-                      "Trxn_Set_2": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase on Jan 31,2025" },
+                      "Trxn_Set_2": "John sends $4000  in wires from Acct #345723 to Jill's account (Dummy_Acct_1) at  Chase on Jan 31,2025" },
                    "98765": 
                        {"Trxn_Set_1": "John sends $2000  in wires from Acct #99999 to Account #98765 on Jan 31,2025"} ,
                    "12345": 
-                        {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
+                        {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank (Dummy_Acct_1) to her Acct #12345 at Bank of America on Jan 19,2025",
+                         "Trxn_Set_2": " Check of $1000 was deposited into Dummy_Acct_1 at Chase Bank. The check originated from Acct #123453" } ,
                    {"99999": 
                        {"Trxn_Set_1": "John deposited $5000 in Cash into  Acct #99999 at Bank of America on Jan 1, 2025",
                         "Trxn_Set_2": "John sends $2000 from Acct #99999 to Account #98765 by Wire on Jan 31,2025."},
-                   "Dummy_Acct_1":
-                       {"Trxn_Set_1": "John sends $4000  in wires from Acct #345723 to Jill's account at  Chase Bank on Jan 31,2025",
-                        "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025 " ,
-                        "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025"  ,
-                        "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." 
-                        }
-
-
+                  
       ----
     llm_config:
-      model: "gpt-4.1-mini"
+      model: "gpt-4.1"
       temperature: 0
     human_input_mode: "NEVER"
     max_turns: 1
@@ -640,7 +612,7 @@ agents:
 
       
     llm_config:
-      model: "gpt-4.1"
+      model: "gpt-4.1-mini"
       temperature: 0
       response_format:
         type: json_object
