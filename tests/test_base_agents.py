@@ -271,32 +271,25 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
 
         # Example message & expected result
         cls.message1 = """
-        1) Account_IDs = ["345723","98765","12345","99999","Dummy_Acct_1"]
+        1) Account_IDs = ["345723","98765","12345","99999"]
         2) Acct_to_Cust =  {"345723": "John","99999":"John","12345":"Jill","Dummy_Acct_1" : "Jill","98765": "Acme Inc"}
         3) Acct_to_FI =  {"345723":"Bank of America","99999":"Bank of America","12345":"Bank of America",
                           "Dummy_Acct_1":"Chase Bank","98765":"Dummy_Bank_1"}
         4) Narrative:
-           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . 
-           John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025.
-            Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025  and  
-            then wired $2000 from that account to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
+           John deposited $5000 each in Cash into Acct #345723 and Acct #99999, both of which are at Bank of America on Jan 1, 2025 . John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025.
+           Jill  wired $2000 from her account at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025 .John and Jill own a business Acme Inc that has a  Business account, Account #98765 . John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025. Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025.
         """
 
         cls.expected_dict1 = {
             "345723": 
                 { "Trxn_Set_1": "John deposited $5000 in Cash into Acct #345723 at Bank of America on Jan 1, 2025", 
-                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account at Chase Bank on Jan 15,2025" },
+                  "Trxn_Set_2": "John sends $4000  from Acct #345723 to Jill's account (Dummy_Acct_1) at Chase Bank on Jan 15,2025" },
             "98765":   {"Trxn_Set_1": " John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025",
-                        "Trxn_Set_2": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025"} ,
-            "12345":  {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank to her Acct #12345 at Bank of America on Jan 19,2025" },
+                        "Trxn_Set_2": "Jill sends $1000 from her Acct at Chase Bank (Dummy_Acct_1) to Acct #98765 by Wire on Feb 7,2025"} ,
+            "12345":  {"Trxn_Set_1": "Jill wired $2000 from her Acct at Chase Bank (Dummy_Acct_1) to her Acct #12345 at Bank of America on Jan 19,2025" },
             "99999":  {'Trxn_Set_1': 'John deposited $5000 each in Cash into Acct #99999 at Bank of America on Jan 1, 2025.',
                        'Trxn_Set_2': 'John sends $2000 from Acct #99999 to Account #98765 on Feb 1,2025.'},
-            "Dummy_Acct_1": 
-                    {"Trxn_Set_1": "John sends $4000  from Acct #345723 to Jill's account at  Chase Bank on Jan 15,2025",
-                     "Trxn_Set_2": "Jill deposited $3000 in Cash into her Acct at Chase Bank on Jan 17,2025 " ,
-                     "Trxn_Set_3": "Jill wired $2000 from her account at Chase Bank  to her Acct #12345 at Bank of America on Jan 19,2025"  ,
-                     "Trxn_Set_4": "Jill sends $1000 from her Acct at Chase Bank to Acct #98765 by Wire on Feb 7,2025." 
-                        }
+
         }
 
         
@@ -316,7 +309,7 @@ class Test_Narrative_Extraction_Agent(unittest.TestCase):
         transaction_dict = self.results_dict1
 
         # The top-level keys we expect
-        expected_keys = ["345723", "98765", "12345", "99999", "Dummy_Acct_1"]
+        expected_keys = ["345723", "98765", "12345", "99999"]
 
         # Check that each expected key is present
         for key in expected_keys:
@@ -448,7 +441,7 @@ class TestRouterAgent(unittest.TestCase):
                                 {'Individuals': ['John', 'Jill'], 
                             'Organizations': ['Acme Inc'], 
                                 'Financial_Institutions': ['Bank of America', 'Chase Bank']},
-                                'Account_IDs': ['345723', '98765', 'Dummy_Acct_1'], 
+                                'Account_IDs': ['345723', '98765'], 
                                 'Acct_to_FI': {'345723': 'Bank of America', 'Dummy_Acct_1': 'Chase Bank', '98765': 'Dummy_Bank_1'},
                                 'Acct_to_Cust': {'345723': 'John', 'Dummy_Acct_1': 'Jill', '98765': 'Acme Inc'}, 
                                 'FI_to_Acct_to_Cust': {'Bank of America': {'345723': 'CUST_001'}, 'Chase Bank': {'Dummy_Acct_1': 'CUST_002'}, 'Dummy_Bank_1': {'98765': 'CUST_003'}},
