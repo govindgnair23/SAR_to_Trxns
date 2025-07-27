@@ -343,6 +343,9 @@ def split_dictionary_into_subnarratives(data: dict) -> list:
     original_narrative = data.get("Narratives", {})
 
     for acct_id, trxn_sets in original_narrative.items():
+        # Skip dummy and unknown account IDs
+        if acct_id == "Unknown" or re.match(r"^Dummy_Acct_\d+$", acct_id):
+            continue
         for trxn_set_label, narration_text in trxn_sets.items():
             # Copy all top-level fields except Narrative
             new_dict = {
