@@ -297,8 +297,8 @@ def instantiate_agents_for_trxn_generation(configs):
         human_input_mode = trxn_generation_agent_config.get('human_input_mode',"NEVER")
         code_execution_config = trxn_generation_agent_config.get("trxn_generation_agent_config", False)
         description = trxn_generation_agent_config.get("description","")
-        # summary_method = trxn_generation_agent_config.get('summary_method')
-        # summary_prompt = trxn_generation_agent_config.get('summary_prompt')
+        #summary_method = trxn_generation_agent_config.get('summary_method')
+        #summary_prompt = trxn_generation_agent_config.get('summary_prompt')
 
         logger.info(f"Loaded configuration for Trxn Generation Agent")
 
