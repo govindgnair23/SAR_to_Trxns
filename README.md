@@ -11,7 +11,7 @@ This is an ongoing Python project to transform Suspicious Activity Reports (SARs
 
 ## 🧠 Project Overview
 
-This project uses a sophisticated **multi-agent AI system** to transform unstructured SAR narratives into structured transaction data. The system employs specialized AI agents working in coordinated workflows to:
+This project uses a **multi-agent AI system** to transform unstructured SAR narratives into structured transaction data. The system employs specialized AI agents working in coordinated workflows to:
 
 - Parse and interpret complex SAR narratives
 - Extract entities (individuals, organizations, financial institutions, accounts)
@@ -19,9 +19,8 @@ This project uses a sophisticated **multi-agent AI system** to transform unstruc
 - Support parallel processing for large-scale SAR analysis
 
 ### Key Capabilities
-- **Entity Resolution**: Automatically identifies and resolves entity references across complex narratives
-- **Transaction Synthesis**: Converts narrative descriptions into structured transaction records
-- **Parallel Processing**: Handles multiple SAR documents simultaneously
+- **Entity Extraction and Resolution**: Automatically identifies and resolves entity references within narratives
+- **Trxn Generation**: Use Tools judiciously to simulate a large volume of trxns or extract trxns faithfully if fully specified.
 - **Evaluation Framework**: Built-in metrics and validation for accuracy assessment
 
 ---
@@ -45,7 +44,7 @@ Sub-Narratives → Router_Agent → Transaction_Generation_Agent → Structured 
 ```
 
 1. **Router_Agent**: Routes narratives to appropriate transaction generation agents
-2. **Transaction_Generation_Agent**: Synthesizes structured transactions with complete metadata
+2. **Transaction_Generation_Agent -w/Tool **: Synthesizes structured transactions with complete metadata
 3. **Parallel Processing**: Handles multiple sub-narratives concurrently for performance
 
 ### Data Flow
@@ -82,7 +81,7 @@ SAR_NARRATIVES_TO_TRXNS/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/SAR-to-Trxns.git
+git clone https://github.com/govindgnair23/SAR_to_Trxns.git
 cd SAR-to-Trxns
 ```
 
@@ -168,7 +167,7 @@ totaling $300,000 from his personal account (#67890-4321)...
 The system generates structured transaction data in CSV format:
 
 | Transaction_ID | Originator_Name | Originator_Account_ID | Beneficiary_Name | Trxn_Amount | Trxn_Date | Trxn_Channel |
-|----------------|-----------------|----------------------|------------------|-------------|-----------|--------------|
+|----------------|-----------------|----------------------|------------------|-------------|-----------|-------------|
 | 1 | Michael Smith | 56789-1234 | Unknown | 50000 | 2023-02-01 | Wire |
 | 2 | Michael Smith | 67890-4321 | Unknown | 30000 | 2023-02-15 | Wire |
 
@@ -182,7 +181,7 @@ The system generates structured transaction data in CSV format:
 ## 🧰 Tech Stack
 
 - **Language**: Python 3.8+
-- **AI Framework**: AutoGen (Multi-agent orchestration)
+- **AI Framework**: AutoGen 0.2 (Multi-agent orchestration)
 - **ML Models**: OpenAI GPT-4.1, GPT-4o-mini
 - **Data Processing**: Pandas, NumPy
 - **Web Interface**: Streamlit
@@ -220,8 +219,7 @@ python evals/eval_workflow2_ui.py
 
 - ✅ **Multi-Agent AI System**: Specialized agents for entity extraction, resolution, and transaction generation
 - ✅ **Two-Workflow Architecture**: Coordinated pipelines for comprehensive SAR processing
-- ✅ **Parallel Processing**: Concurrent handling of multiple sub-narratives for performance
-- ✅ **Entity Resolution**: Advanced mapping of accounts, customers, and financial institutions
+- ✅ **Entity Resolution**: Mapping of  multiple accounts held by same entity to same Customer ID
 - ✅ **Structured Output**: Complete transaction records with metadata fields
 - ✅ **Web Interface**: Streamlit-based UI for interactive SAR processing
 - ✅ **Comprehensive Evaluation**: Built-in metrics and validation frameworks
@@ -231,12 +229,6 @@ python evals/eval_workflow2_ui.py
 ---
 
 ## 🔒 Security & Compliance
-
-This tool is designed for **defensive security purposes only**:
-- ✅ Financial compliance and anti-money laundering (AML) analysis
-- ✅ Transaction monitoring system validation
-- ✅ Historical SAR data analysis for regulatory purposes
-- ❌ **Not for**: Creating, modifying, or improving malicious code
 
 **Data Security:**
 - Store API keys in environment variables, never in code
@@ -255,15 +247,10 @@ This tool is designed for **defensive security purposes only**:
 
 **In Progress:**
 - [ ] Support for tabular SAR formats
-- [ ] Enhanced entity linking across documents
-- [ ] Performance optimization for large-scale processing
-- [ ] Additional output formats (JSON, XML)
+
 
 **Future Enhancements:**
-- [ ] Real-time SAR processing API
-- [ ] Integration with common AML platforms
-- [ ] Advanced visualization dashboards
-- [ ] Multi-language SAR support
+- [ ] Incorporation into a more coprehensive SAR to Knowledge Graph Framework
 
 ---
 
